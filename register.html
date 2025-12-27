@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Morning Booster | Student Registration</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background: #f4f7f6; font-family: 'Segoe UI', sans-serif; }
+        .reg-container { max-width: 450px; margin: 40px auto; }
+        .card { border: none; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .btn-whatsapp { background: #25d366; color: white; font-weight: bold; border-radius: 50px; padding: 12px; border: none; transition: 0.3s; }
+        .btn-whatsapp:hover { background: #1ebe57; transform: scale(1.02); color: white; }
+        .payment-check { background: #e8f5e9; padding: 15px; border-radius: 12px; border: 1px solid #c8e6c9; }
+        .pass-display { background: #eee; border-radius: 10px; padding: 10px; font-size: 1.2rem; font-weight: 800; color: #333; }
+    </style>
+</head>
+<body>
+
+<div class="container reg-container">
+    <div class="card p-4">
+        <h3 class="text-center fw-bold text-primary mb-4">Registration</h3>
+        
+        <div class="mb-3">
+            <label class="form-label fw-bold">ශිෂ්‍ය අංකය (Student ID)</label>
+            <input type="text" id="s_id" class="form-control" placeholder="උදා: ST105" oninput="updatePassword()">
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label fw-bold">සම්පූර්ණ නම</label>
+            <input type="text" id="s_name" class="form-control" placeholder="ශිෂ්‍යයාගේ නම">
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label fw-bold">WhatsApp අංකය</label>
+            <input type="text" id="s_phone" class="form-control" placeholder="94771234567">
+            <small class="text-muted">මුලට 94 දමා ඇතුළත් කරන්න.</small>
+        </div>
+
+        <div class="payment-check mb-4">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="pay_tik">
+                <label class="form-check-label fw-bold" for="pay_tik">
+                    Payment Verified (මාසික ගාස්තු ගෙවා ඇත)
+                </label>
+            </div>
+        </div>
+
+        <div class="text-center mb-4">
+            <small class="text-muted d-block mb-1">Generated Password:</small>
+            <div id="pass_preview" class="pass-display">----</div>
+        </div>
+
+        <button class="btn btn-whatsapp w-100" onclick="registerAndNotify()">
+            REGISTER & SEND PASSWORD
+        </button>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyDMjYdugjdCiJG9uc9Ju_7n0qkljAiC9FE",
+        authDomain: "morning-boost-48c64.firebaseapp.com",
+        databaseURL: "https://morning-boost-48c64-default-rtdb.firebaseio.com",
+        projectId: "morning-boost-48c64",
+        storageBucket: "morning-boost-48c64.firebasestorage.app",
+        messagingSenderId: "140528602458",
+        appId: "1:140528602458:web:34e14db5a5d93d1db13763"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // --- Password එක Generate කරන Function එක ---
+    window.updatePassword = function() {
+        const id = document.getElementById('s_id').value.trim();
+        if(id.length >= 2) {
+            const lastDigits = id.slice(-2);
+            const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+            const currentMonth = months[new Date().getMonth()];
+            document.getElementById('pass_preview').innerText = lastDigits + currentMonth;
+        } else {
+            document.getElementById('pass_preview').innerText = "----";
+        }
+    };
+
+    window.registerAndNotify = async function() {
+        const id = document.getElementById('s_id').value.trim();
+        const name = document.getElementById('s_name').value.trim();
+        const phone = document.getElementById('s_phone').value.trim();
+        const isPaid = document.getElementById('pay_tik').checked;
+        const pass = document.getElementById('pass_preview').innerText;
+
+        if(!id || !name || !phone || pass === "----") return alert("සියලුම විස්තර ඇතුළත් කරන්න!");
+        if(!isPaid) return alert("කරුණාකර Payment එක තහවුරු කරන්න!");
+
+        try {
+            // 1. Firebase එකට දත්ත යැවීම
+            await set(ref(db, `students/${id}`), {
+                name: name,
+                phone: phone,
+                password: pass,
+                status: "Active",
+                paid: "Yes"
+            });
+
+            // 2. WhatsApp පණිවිඩය සකස් කිරීම
+            const message = `*Morning Booster Registration Success!*%0A%0AHi *${name}*,%0Aඔබ සාර්ථකව පද්ධතියට ලියාපදිංචි විය.%0A%0A*Student ID:* ${id}%0A*Password:* ${pass}%0A%0Aපහත ලින්ක් එකෙන් Dashboard එකට පිවිසෙන්න:%0Ahttps://morning-boost-48c64.web.app`;
+
+            const waURL = `https://wa.me/${phone}?text=${message}`;
+
+            alert("සාර්ථකයි! විස්තර WhatsApp කිරීමට සූදානම්.");
+            
+            // 3. WhatsApp එකට යැවීම
+            window.open(waURL, '_blank');
+            location.reload();
+
+        } catch (error) {
+            alert("Error: " + error.message);
+        }
+    };
+</script>
+
+</body>
+</html>

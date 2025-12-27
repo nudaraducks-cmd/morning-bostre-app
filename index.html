@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Morning Booster | Student Portal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        :root { --bg: #0b0f1a; --glass: rgba(255, 255, 255, 0.08); --accent: #00d2ff; --neon: #3a7bd5; }
+        body { font-family: 'Poppins', sans-serif; background: var(--bg); color: white; min-height: 100vh; overflow-x: hidden; background: radial-gradient(circle at top right, #1e1b4b, #0b0f1a); }
+        
+        /* Dashboard Cards */
+        .glass-card { background: var(--glass); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.1); border-radius: 25px; padding: 20px; transition: 0.3s; }
+        .booster-btn { background: linear-gradient(135deg, #00d2ff, #3a7bd5); border: none; padding: 22px; border-radius: 20px; font-weight: 800; font-size: 1.2rem; color: white; box-shadow: 0 10px 30px rgba(0, 210, 255, 0.3); }
+        
+        /* Game Mode */
+        #game-view { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 9999; padding: 20px; overflow-y: auto; }
+        .timer-ring { width: 75px; height: 75px; border: 4px solid var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.5rem; margin: 0 auto 20px; box-shadow: 0 0 20px var(--accent); }
+        .option-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 16px; margin-bottom: 12px; border-radius: 15px; width: 100%; text-align: left; transition: 0.2s; }
+        .option-btn.selected { background: var(--accent); transform: scale(1.02); font-weight: bold; border-color: #fff; }
+        
+        /* Music Control */
+        .music-btn { position: fixed; bottom: 20px; right: 20px; width: 50px; height: 50px; border-radius: 50%; background: var(--accent); color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10000; box-shadow: 0 0 15px var(--accent); }
+        
+        #login-screen, #dashboard, #result-screen { padding: 20px; }
+        #dashboard, #result-screen { display: none; }
+    </style>
+</head>
+<body>
+
+    <div id="login-screen" class="container mt-5 pt-5">
+        <div class="glass-card text-center mx-auto" style="max-width: 400px;">
+            <h2 class="fw-bold mb-4">Morning Booster</h2>
+            <input type="text" id="log_id" class="form-control mb-3 bg-dark text-white border-0 py-3 rounded-pill text-center" placeholder="ශිෂ්‍ය ID එක">
+            <input type="password" id="log_pass" class="form-control mb-4 bg-dark text-white border-0 py-3 rounded-pill text-center" placeholder="Password (e.g. 27Dec)">
+            <button class="btn btn-primary w-100 py-3 rounded-pill fw-bold" onclick="handleLogin()">ENTER PORTAL</button>
+        </div>
+    </div>
+
+    <div id="dashboard" class="container py-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div><small class="text-accent">Welcome back,</small><h3 class="fw-bold" id="user-name">Student</h3></div>
+            <button class="btn btn-sm btn-outline-danger rounded-pill" onclick="logout()">Logout</button>
+        </div>
+
+        <button class="booster-btn w-100 mb-5" onclick="initBooster()">
+            <i class="fas fa-bolt me-2"></i> START TODAY BOOSTER
+        </button>
+
+        <div class="row g-3 mb-4">
+            <div class="col-md-7">
+                <div class="glass-card h-100">
+                    <h6 class="fw-bold mb-3"><i class="fas fa-chart-line text-accent me-2"></i>Weekly Progress</h6>
+                    <canvas id="progressChart" style="max-height: 200px;"></canvas>
+                </div>
+            </div>
+            <div class="col-md-5">
+                <div class="glass-card h-100">
+                    <h6 class="fw-bold mb-3"><i class="fas fa-trophy text-warning me-2"></i>Leaderboard</h6>
+                    <div id="leaderboard-list" class="small"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="game-view">
+        <div class="container py-3">
+            <div class="timer-ring" id="timer">--</div>
+            <div id="q-box">
+                <h4 id="q-text" class="mb-4 fw-bold">ප්‍රශ්නය පූරණය වෙමින්...</h4>
+                <div id="q-img-box" class="mb-4 text-center"></div>
+                <div id="options-box"></div>
+            </div>
+            <div class="mt-4 text-center">
+                <button id="next-btn" class="btn btn-primary px-5 py-3 rounded-pill fw-bold" onclick="nextQuestion()">SUBMIT & NEXT</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="result-screen" class="container py-5 text-center">
+        <h1 class="fw-bold text-accent mb-4">Well Done!</h1>
+        <div class="glass-card mb-4">
+            <h4 id="result-msg" class="mb-4">Calculating...</h4>
+            <a id="result-url" href="#" target="_blank" class="btn btn-success btn-lg rounded-pill fw-bold px-4">Watch Explanation Video</a>
+        </div>
+        <button class="btn btn-link text-white text-decoration-none" onclick="location.reload()">Return Home</button>
+    </div>
+
+    <div class="music-btn" onclick="toggleMusic()"><i id="m-icon" class="fas fa-music"></i></div>
+    <audio id="bg-music" loop></audio>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDMjYdugjdCiJG9uc9Ju_7n0qkljAiC9FE",
+            authDomain: "morning-boost-48c64.firebaseapp.com",
+            databaseURL: "https://morning-boost-48c64-default-rtdb.firebaseio.com",
+            projectId: "morning-boost-48c64",
+            storageBucket: "morning-boost-48c64.firebasestorage.app",
+            messagingSenderId: "140528602458",
+            appId: "1:140528602458:web:34e14db5a5d93d1db13763"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        let currentPack, qKeys, currentQIndex = 0, userAnswers = [], selected = null, timerInterval;
+
+        // --- AUTH LOGIC (Monthly Auto Logout Check) ---
+        window.handleLogin = async function() {
+            const id = document.getElementById('log_id').value.trim();
+            const pass = document.getElementById('log_pass').value.trim();
+            const snap = await get(ref(db, `students/${id}`));
+            
+            if(snap.exists() && snap.val().password === pass) {
+                const now = new Date();
+                const loginSession = { user: snap.val(), id: id, month: now.getMonth() };
+                localStorage.setItem('mb_session', JSON.stringify(loginSession));
+                location.reload();
+            } else alert("Invalid Credentials!");
+        };
+
+        const session = JSON.parse(localStorage.getItem('mb_session'));
+        if(session) {
+            const currentMonth = new Date().getMonth();
+            if(session.month !== currentMonth) {
+                localStorage.clear();
+                alert("නව මාසයක් උදාවී ඇත. කරුණාකර නැවත ලොග් වන්න.");
+            } else {
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('dashboard').style.display = 'block';
+                document.getElementById('user-name').innerText = session.user.name;
+                loadDashboardData();
+            }
+        }
+
+        // --- BOOSTER LOGIC ---
+        window.initBooster = async function() {
+            const today = new Date().toISOString().split('T')[0];
+            const snap = await get(ref(db, `daily_packs/${today}`));
+            if(!snap.exists()) return alert("අද දිනට ප්‍රශ්න පත්‍රයක් නොමැත!");
+            
+            currentPack = snap.val();
+            qKeys = Object.keys(currentPack.questions);
+            if(currentPack.music_url) { const m = document.getElementById('bg-music'); m.src = currentPack.music_url; m.play(); }
+            
+            document.getElementById('dashboard').style.display = 'none';
+            document.getElementById('game-view').style.display = 'block';
+            loadQuestion();
+        };
+
+        function loadQuestion() {
+            if(currentQIndex >= qKeys.length) return finishGame();
+            selected = null;
+            const q = currentPack.questions[qKeys[currentQIndex]];
+            document.getElementById('q-text').innerText = q.text;
+            document.getElementById('q-img-box').innerHTML = q.img ? `<img src="${q.img}" class="img-fluid rounded-4 shadow mb-3">` : "";
+            
+            const box = document.getElementById('options-box'); box.innerHTML = "";
+            q.options.forEach((opt, i) => { if(opt) box.innerHTML += `<button class="option-btn" onclick="selAns(${i+1}, ${q.correct})">${opt}</button>`; });
+            
+            startTimer(currentPack.timer_sec || 60);
+        }
+
+        window.selAns = (idx, corr) => {
+            selected = { isCorr: (idx == corr) };
+            document.querySelectorAll('.option-btn').forEach((b, i) => b.classList.toggle('selected', (i+1)==idx));
+        };
+
+        window.nextQuestion = () => {
+            if(!selected) return alert("කරුණාකර පිළිතුරක් තෝරන්න!");
+            userAnswers.push(selected.isCorr);
+            currentQIndex++;
+            clearInterval(timerInterval);
+            loadQuestion();
+        };
+
+        function startTimer(s) {
+            let t = s; document.getElementById('timer').innerText = t;
+            clearInterval(timerInterval);
+            timerInterval = setInterval(() => { t--; document.getElementById('timer').innerText = t; if(t<=0) nextQuestion(); }, 1000);
+        }
+
+        async function finishGame() {
+            document.getElementById('game-view').style.display = 'none';
+            document.getElementById('result-screen').style.display = 'block';
+            document.getElementById('bg-music').pause();
+
+            const a = userAnswers;
+            let p = (a[0]&&!a[1]&&!a[2])?"p1":(!a[0]&&a[1]&&!a[2])?"p2":(!a[0]&&!a[1]&&a[2])?"p3":(a[0]&&a[1]&&!a[2])?"p4":(a[0]&&!a[1]&&a[2])?"p5":(!a[0]&&a[1]&&a[2])?"p6":(a[0]&&a[1]&&a[2])?"p7":"p8";
+            
+            const score = a.filter(x => x).length * 10;
+            const today = new Date().toISOString().split('T')[0];
+            await set(ref(db, `results/${today}/${session.id}`), { name: session.user.name, score });
+            await set(ref(db, `student_history/${session.id}/${today}`), score);
+
+            const result = currentPack.patterns[p];
+            document.getElementById('result-msg').innerText = result.msg;
+            document.getElementById('result-url').href = result.url;
+        }
+
+        // --- DASHBOARD DATA ---
+        async function loadDashboardData() {
+            // Load Leaderboard
+            const today = new Date().toISOString().split('T')[0];
+            const snap = await get(ref(db, `results/${today}`));
+            const list = document.getElementById('leaderboard-list');
+            if(snap.exists()){
+                const players = Object.values(snap.val()).sort((a,b) => b.score - a.score);
+                list.innerHTML = players.slice(0, 5).map((p, i) => `<div class="d-flex justify-content-between mb-2"><span>${i+1}. ${p.name}</span><b>${p.score} pts</b></div>`).join('');
+            } else list.innerHTML = "No results yet.";
+
+            // Load Graph
+            const hSnap = await get(ref(db, `student_history/${session.id}`));
+            if(hSnap.exists()){
+                const data = hSnap.val();
+                const labels = Object.keys(data).slice(-7);
+                new Chart(document.getElementById('progressChart'), {
+                    type: 'line', data: { labels, datasets: [{ label: 'Score', data: labels.map(l => data[l]), borderColor: '#00d2ff', tension: 0.4 }] },
+                    options: { plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { ticks: { color: '#fff' } } } }
+                });
+            }
+        }
+
+        window.toggleMusic = () => { const m = document.getElementById('bg-music'); if(m.paused) m.play(); else m.pause(); };
+        window.logout = () => { localStorage.clear(); location.reload(); };
+    </script>
+</body>
+</html>

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Morning Booster | Admin Control Center</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root { --primary: #0d6efd; --success: #198754; --warning: #ffc107; }
+        body { background: #f4f7f9; padding-bottom: 100px; font-family: 'Segoe UI', sans-serif; }
+        .admin-header { background: linear-gradient(135deg, #0d6efd, #003d99); color: white; padding: 30px; border-radius: 0 0 30px 30px; margin-bottom: 30px; shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        .card { border-radius: 15px; border: none; box-shadow: 0 5px 15px rgba(0,0,0,0.05); transition: 0.3s; margin-bottom: 20px; }
+        .card:hover { transform: translateY(-5px); }
+        .q-card { border-left: 8px solid var(--primary); }
+        .pattern-card { border-left: 8px solid var(--success); background: #f8fff9; }
+        .sticky-save { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 400px; z-index: 1000; }
+        .section-title { font-weight: 800; color: #333; margin-bottom: 20px; border-bottom: 2px solid #ddd; padding-bottom: 5px; }
+    </style>
+</head>
+<body>
+
+<div class="admin-header text-center shadow">
+    <h1 class="fw-bold">Morning Booster Admin</h1>
+    <p class="opacity-75">දෛනික ප්‍රශ්න පත්‍ර සහ ශිෂ්‍ය ප්‍රතිඵල පාලක පැනලය</p>
+</div>
+
+<div class="container">
+    <div class="section-title">01. මූලික සැකසුම් (General Settings)</div>
+    <div class="card p-4">
+        <div class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label fw-bold">ප්‍රකාශිත දිනය (Date)</label>
+                <input type="date" id="p_date" class="form-control shadow-sm">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-bold">ප්‍රශ්නයකට කාලය (Seconds)</label>
+                <input type="number" id="timer_sec" class="form-control shadow-sm" placeholder="e.g. 60">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-bold">පොදු YouTube Link</label>
+                <input type="text" id="common_yt" class="form-control shadow-sm" placeholder="URL">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-bold">Study Music Link (YouTube/MP3)</label>
+                <input type="text" id="music_url" class="form-control shadow-sm" placeholder="Music URL">
+            </div>
+        </div>
+    </div>
+
+    <div class="section-title">02. ප්‍රශ්න ඇතුළත් කිරීම (Questions - Max 3)</div>
+    <div id="questions-list">
+        <script>
+            for(let i=1; i<=3; i++) {
+                document.write(`
+                <div class="card q-card p-4 shadow-sm" id="box_q${i}">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="text-primary fw-bold">ප්‍රශ්නය ${i}</h5>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="q${i}_active" checked>
+                            <label class="form-check-label small">Active</label>
+                        </div>
+                    </div>
+                    <textarea id="q${i}_text" class="form-control mb-3" rows="2" placeholder="ප්‍රශ්නය මෙතන ලියන්න..."></textarea>
+                    <input type="text" id="q${i}_img" class="form-control mb-3" placeholder="Image URL (e.g. ImgBB link)">
+
+                    <div class="row g-2">
+                        <div class="col-md-9">
+                            <input type="text" id="q${i}_o1" class="form-control mb-1 shadow-sm" placeholder="පිළිතුර 01">
+                            <input type="text" id="q${i}_o2" class="form-control mb-1 shadow-sm" placeholder="පිළිතුර 02">
+                            <input type="text" id="q${i}_o3" class="form-control mb-1 shadow-sm" placeholder="පිළිතුර 03">
+                            <input type="text" id="q${i}_o4" class="form-control mb-1 shadow-sm" placeholder="පිළිතුර 04">
+                            <input type="text" id="q${i}_o5" class="form-control mb-1 shadow-sm" placeholder="පිළිතුර 05">
+                        </div>
+                        <div class="col-md-3">
+                            <div class="bg-light p-3 rounded text-center border">
+                                <label class="small fw-bold d-block mb-2">නිවැරදි පිළිතුර</label>
+                                <select id="q${i}_correct" class="form-select border-primary fw-bold text-center">
+                                    <option value="1">1</option><option value="2">2</option>
+                                    <option value="3">3</option><option value="4">4</option>
+                                    <option value="5">5</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                `);
+            }
+        </script>
+    </div>
+
+    <div class="section-title">03. ප්‍රතිඵල රටා, පණිවිඩ සහ URL (8 Combinations)</div>
+    <div class="row g-3">
+        <script>
+            const combinations = [
+                { id: 1, label: "(1)✓ (2)✗ (3)✗" }, { id: 2, label: "(1)✗ (2)✓ (3)✗" },
+                { id: 3, label: "(1)✗ (2)✗ (3)✓" }, { id: 4, label: "(1)✓ (2)✓ (3)✗" },
+                { id: 5, label: "(1)✓ (2)✗ (3)✓" }, { id: 6, label: "(1)✗ (2)✓ (3)✓" },
+                { id: 7, label: "(1)✓ (2)✓ (3)✓" }, { id: 8, label: "(1)✗ (2)✗ (3)✗" }
+            ];
+            combinations.forEach(item => {
+                document.write(`
+                <div class="col-md-6">
+                    <div class="card pattern-card p-3 h-100 shadow-sm">
+                        <h6 class="fw-bold text-success">Pattern ${item.id}: ${item.label}</h6>
+                        <input type="text" id="msg_p${item.id}" class="form-control mb-2 shadow-sm" placeholder="ශිෂ්‍යයාට පෙන්විය යුතු පණිවිඩය (Message)">
+                        <input type="text" id="url_p${item.id}" class="form-control shadow-sm border-success" placeholder="විවරණ URL එක (Link)">
+                    </div>
+                </div>
+                `);
+            });
+        </script>
+    </div>
+
+    <div class="sticky-save">
+        <button id="save-btn" class="btn btn-primary btn-lg w-100 shadow-lg fw-bold rounded-pill" onclick="window.saveAll()">
+            SAVE ALL DATA
+        </button>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+    // Your Firebase Config
+    const firebaseConfig = {
+        apiKey: "AIzaSyDMjYdugjdCiJG9uc9Ju_7n0qkljAiC9FE",
+        authDomain: "morning-boost-48c64.firebaseapp.com",
+        databaseURL: "https://morning-boost-48c64-default-rtdb.firebaseio.com",
+        projectId: "morning-boost-48c64",
+        storageBucket: "morning-boost-48c64.firebasestorage.app",
+        messagingSenderId: "140528602458",
+        appId: "1:140528602458:web:34e14db5a5d93d1db13763"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    window.saveAll = async function() {
+        const date = document.getElementById('p_date').value;
+        const btn = document.getElementById('save-btn');
+        if(!date) return alert("කරුණාකර දිනයක් තෝරන්න!");
+
+        try {
+            btn.disabled = true;
+            btn.innerText = "SAVING TO CLOUD...";
+
+            const pack = {
+                common_yt: document.getElementById('common_yt').value,
+                music_url: document.getElementById('music_url').value,
+                timer_sec: document.getElementById('timer_sec').value || 60,
+                questions: {},
+                patterns: {}
+            };
+
+            // Collect 3 Questions
+            for(let i=1; i<=3; i++) {
+                if(document.getElementById(`q${i}_active`).checked) {
+                    pack.questions[`q${i}`] = {
+                        text: document.getElementById(`q${i}_text`).value,
+                        img: document.getElementById(`q${i}_img`).value,
+                        options: [
+                            document.getElementById(`q${i}_o1`).value,
+                            document.getElementById(`q${i}_o2`).value,
+                            document.getElementById(`q${i}_o3`).value,
+                            document.getElementById(`q${i}_o4`).value,
+                            document.getElementById(`q${i}_o5`).value
+                        ],
+                        correct: document.getElementById(`q${i}_correct`).value
+                    };
+                }
+            }
+
+            // Collect 8 Patterns
+            for(let j=1; j<=8; j++) {
+                pack.patterns[`p${j}`] = {
+                    msg: document.getElementById(`msg_p${j}`).value,
+                    url: document.getElementById(`url_p${j}`).value
+                };
+            }
+
+            await set(ref(db, 'daily_packs/' + date), pack);
+            alert("සාර්ථකයි! " + date + " දිනට අදාළ දත්ත සුරැකුණා.");
+            location.reload();
+        } catch (e) {
+            alert("දෝෂයකි: " + e.message);
+            btn.disabled = false;
+            btn.innerText = "SAVE ALL DATA";
+        }
+    };
+</script>
+</body>
+</html>
