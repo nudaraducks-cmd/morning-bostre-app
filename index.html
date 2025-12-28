@@ -3,78 +3,91 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Morning Booster | Madawa Wijesingha Chemistry</title>
+    <title>Morning Booster | Madawa Wijesingha</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         :root { --bg: #0b0f1a; --accent: #00d2ff; --glass: rgba(255, 255, 255, 0.05); }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; min-height: 100vh; }
         
-        /* Branding Section */
-        .teacher-header { padding: 40px 20px; text-align: center; background: linear-gradient(to bottom, rgba(0,210,255,0.1), transparent); border-radius: 0 0 50px 50px; margin-bottom: 30px; }
-        .teacher-img { width: 120px; height: 120px; border-radius: 50%; border: 3px solid var(--accent); object-fit: cover; box-shadow: 0 0 20px var(--accent); margin-bottom: 15px; }
-        .brand-name { font-weight: 800; letter-spacing: 1px; color: white; text-transform: uppercase; margin-bottom: 0; }
-        .brand-sub { font-size: 0.9rem; color: var(--accent); opacity: 0.8; }
+        /* Teacher Branding Header */
+        .teacher-header { 
+            display: flex; align-items: center; justify-content: center; 
+            gap: 20px; padding: 40px 20px; 
+            background: linear-gradient(180deg, rgba(0,210,255,0.15), transparent); 
+            border-radius: 0 0 40px 40px; margin-bottom: 25px;
+        }
+        .teacher-img { 
+            width: 90px; height: 90px; border-radius: 20px; 
+            border: 2px solid var(--accent); object-fit: cover;
+            box-shadow: 0 0 15px rgba(0,210,255,0.3);
+        }
+        .brand-name { font-weight: 800; font-size: 1.4rem; margin: 0; line-height: 1.2; text-transform: uppercase; }
+        .brand-sub { font-size: 0.85rem; color: var(--accent); letter-spacing: 2px; font-weight: bold; }
 
-        .glass-card { background: var(--glass); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 25px; padding: 25px; margin-bottom: 20px; }
-        .booster-btn { background: linear-gradient(135deg, #00d2ff, #3a7bd5); border: none; padding: 20px; border-radius: 20px; font-weight: bold; width: 100%; color: white; font-size: 1.1rem; box-shadow: 0 10px 25px rgba(0,210,255,0.2); }
-        
+        .glass-card { background: var(--glass); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); border-radius: 25px; padding: 25px; margin-bottom: 20px; }
+        .booster-btn { background: linear-gradient(135deg, #00d2ff, #3a7bd5); border: none; padding: 20px; border-radius: 20px; font-weight: 800; width: 100%; color: white; box-shadow: 0 8px 20px rgba(0,210,255,0.2); transition: 0.3s; }
+        .booster-btn:active { transform: scale(0.97); }
+
         #game-view { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 10000; padding: 20px; overflow-y: auto; }
-        .timer-circle { width: 70px; height: 70px; border: 3px solid var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-weight: bold; font-size: 1.5rem; }
-        .option-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 15px; margin-bottom: 10px; border-radius: 15px; width: 100%; text-align: left; transition: 0.3s; }
-        .option-btn.selected { background: var(--accent); border-color: white; transform: scale(1.02); }
-        .music-btn { position: fixed; top: 20px; right: 20px; z-index: 10001; background: var(--accent); border: none; width: 40px; height: 40px; border-radius: 50%; color: white; display: none; }
+        .timer-circle { width: 65px; height: 65px; border: 3px solid var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-weight: bold; font-size: 1.4rem; color: var(--accent); }
+        .option-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 16px; margin-bottom: 12px; border-radius: 15px; width: 100%; text-align: left; transition: 0.2s; }
+        .option-btn.selected { background: var(--accent); font-weight: bold; border-color: white; }
+        .music-toggle { position: fixed; top: 20px; right: 20px; z-index: 10001; background: var(--accent); border: none; width: 45px; height: 45px; border-radius: 50%; color: white; display: none; box-shadow: 0 0 15px var(--accent); }
     </style>
 </head>
 <body>
 
-    <button id="music-btn" class="music-btn" onclick="toggleMusic()"><i id="m-icon" class="fas fa-play"></i></button>
+    <button id="music-btn" class="music-toggle" onclick="toggleMusic()"><i id="m-icon" class="fas fa-play"></i></button>
 
     <div class="teacher-header">
-        <img src="ඔබේ_පින්තූරයේ_ලින්ක්_එක" class="teacher-img" alt="Madawa Wijesingha">
-        <h4 class="brand-name">Madawa Wijesingha</h4>
-        <div class="brand-sub">CHEMISTRY</div>
+        <img src="sir.jpg" class="teacher-img" alt="Madawa Wijesingha">
+        <div>
+            <h4 class="brand-name">MADAWA WIJESINGHA</h4>
+            <div class="brand-sub">CHEMISTRY</div>
+        </div>
     </div>
 
-    <div id="login-screen" class="container mt-4">
-        <div class="glass-card text-center mx-auto" style="max-width: 400px;">
-            <h5 class="mb-4 fw-bold">Student Login</h5>
-            <input type="text" id="log_id" class="form-control mb-3 bg-dark text-white border-0 py-3 rounded-pill text-center" placeholder="ශිෂ්‍ය ID">
+    <div id="login-screen" class="container">
+        <div class="glass-card text-center mx-auto" style="max-width: 380px;">
+            <h5 class="fw-bold mb-4">Student Portal</h5>
+            <input type="text" id="log_id" class="form-control mb-3 bg-dark text-white border-0 py-3 rounded-pill text-center" placeholder="ID Number">
             <input type="text" id="log_pass" class="form-control mb-4 bg-dark text-white border-0 py-3 rounded-pill text-center" placeholder="Password">
-            <button class="btn btn-primary w-100 py-3 rounded-pill fw-bold" onclick="handleLogin()">LOGIN</button>
+            <button class="btn btn-primary w-100 py-3 rounded-pill fw-bold" onclick="handleLogin()">ENTER</button>
         </div>
     </div>
 
-    <div id="dashboard" class="container">
+    <div id="dashboard" class="container" style="display:none;">
         <div class="glass-card">
-            <h6 class="text-accent mb-3">Hello, <span id="user-name">Student</span>!</h6>
-            <button class="booster-btn mb-4" onclick="initBooster()">START TODAY BOOSTER</button>
-            <hr style="border-color: rgba(255,255,255,0.1);">
-            <div class="d-flex justify-content-between align-items-center">
-                <span class="small fw-bold">PAST QUESTIONS (ARCHIVE)</span>
-                <button class="btn btn-sm btn-outline-info rounded-pill px-3">View All</button>
-            </div>
+            <h6 class="text-accent mb-3">Welcome, <span id="user-name">...</span></h6>
+            <button class="booster-btn" onclick="initBooster()">START TODAY BOOSTER</button>
         </div>
-        <div class="glass-card"><canvas id="progressChart" height="150"></canvas></div>
+        <div class="glass-card">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <span class="small fw-bold">OLD QUESTIONS</span>
+                <span class="badge bg-info">Archive</span>
+            </div>
+            <div id="archive-list" class="small text-muted">සකස් වෙමින් පවතී...</div>
+        </div>
     </div>
 
     <div id="game-view">
         <div class="container py-3">
             <div class="timer-circle" id="timer">--</div>
             <div id="q-box">
-                <h4 id="q-text" class="mb-4">Loading...</h4>
+                <h5 id="q-text" class="mb-4 text-center">Loading...</h5>
                 <div id="q-img-box" class="mb-4 text-center"></div>
                 <div id="options-box"></div>
             </div>
-            <button id="next-btn" class="btn btn-primary w-100 py-3 rounded-pill mt-4 fw-bold" onclick="nextQuestion()">NEXT</button>
+            <button id="next-btn" class="btn btn-primary w-100 py-3 rounded-pill mt-4 fw-bold" onclick="nextQuestion()">NEXT QUESTION</button>
         </div>
     </div>
 
     <div id="result-screen" class="container py-5 text-center" style="display:none;">
-        <h2 class="text-accent mb-4">COMPLETED!</h2>
+        <h2 class="text-accent mb-4">Done!</h2>
         <div class="glass-card">
             <h5 id="result-msg" class="mb-4">...</h5>
-            <a id="result-url" href="#" target="_blank" class="btn btn-success btn-lg rounded-pill px-5 fw-bold">විවරණ වීඩියෝව</a>
+            <a id="result-url" href="#" target="_blank" class="btn btn-success btn-lg rounded-pill px-5 fw-bold">Watch Explanation</a>
         </div>
         <button class="btn btn-link text-white mt-3" onclick="location.reload()">Back Home</button>
     </div>
@@ -82,7 +95,6 @@
     <div id="sc-container" style="display:none;"></div>
 
     <script src="https://w.soundcloud.com/player/api.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
@@ -109,7 +121,7 @@
             if(snap.exists() && snap.val().password === pass){
                 localStorage.setItem('mb_session', JSON.stringify({user: snap.val(), id: id}));
                 location.reload();
-            } else alert("Invalid Login!");
+            } else alert("Invalid ID or Password!");
         };
 
         const session = JSON.parse(localStorage.getItem('mb_session'));
@@ -117,7 +129,6 @@
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('dashboard').style.display = 'block';
             document.getElementById('user-name').innerText = session.user.name;
-            loadDashboardData();
         }
 
         window.initBooster = async function() {
@@ -157,7 +168,7 @@
         };
 
         window.nextQuestion = () => {
-            if(!selectedAns) return alert("Select answer!");
+            if(!selectedAns) return alert("Please select an answer!");
             userAnswers.push(selectedAns.isCorr);
             currentQIndex++; clearInterval(timerInterval); loadQuestion();
         };
@@ -179,10 +190,6 @@
             const result = currentPack.patterns[p];
             document.getElementById('result-msg').innerText = result.msg;
             document.getElementById('result-url').href = result.url;
-        }
-
-        async function loadDashboardData() {
-            // Add leaderboard & Chart code here (from previous index.html)
         }
     </script>
 </body>
