@@ -90,7 +90,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, get, set, onValue, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getDatabase, ref, get, set, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
         const firebaseConfig = { apiKey: "AIzaSyDMjYdugjdCiJG9uc9Ju_7n0qkljAiC9FE", authDomain: "morning-boost-48c64.firebaseapp.com", databaseURL: "https://morning-boost-48c64-default-rtdb.firebaseio.com", projectId: "morning-boost-48c64" };
         const app = initializeApp(firebaseConfig); const db = getDatabase(app);
@@ -117,13 +117,15 @@
             syncUI();
         }
 
+        // --- FIXED BOOSTER LISTENER ---
         function listenForBooster() {
-            // ප්‍රධාන වෙනස: Admin ප්‍රශ්න පත්‍රය මකපු ගමන් Results එකත් reset වෙන්න ඕනේ
             onValue(ref(db, `daily_packs/${todayStr}`), (snapshot) => {
                 const startBtn = document.getElementById('start-btn');
                 const statusMsg = document.getElementById('status-msg');
                 
                 if (!snapshot.exists()) {
+                    // Admin දත්ත මැකුවොත් Browser එකේ පරණ මතකයත් අයින් කරනවා
+                    localStorage.removeItem(`done_${session.id}`);
                     startBtn.disabled = true;
                     startBtn.innerText = "NO BOOSTER TODAY";
                     statusMsg.innerText = "Admin is updating the booster...";
@@ -133,7 +135,7 @@
                     currentPack = snapshot.val();
                     qKeys = Object.keys(currentPack.questions);
 
-                    // ශිෂ්‍යයා මේ විශේෂ ප්‍රශ්න පත්‍රය කරලා තියෙනවද කියලා බලනවා
+                    // Real-time එකේ බලනවා ශිෂ්‍යයා Firebase එකේ ලකුණු අරන්ද කියලා
                     onValue(ref(db, `results/${todayStr}/${session.id}`), (scoreSnap) => {
                         if (scoreSnap.exists()) {
                             startBtn.disabled = true;
@@ -141,11 +143,13 @@
                             statusMsg.innerText = "You have already completed this booster.";
                             statusMsg.classList.remove('d-none');
                         } else {
+                            // මෙතැනදී Local Storage එකත් Clear කරනවා ආයෙත් කරන්න ඉඩ දීමට
+                            localStorage.removeItem(`done_${session.id}`);
                             startBtn.disabled = false;
                             startBtn.innerText = "START TODAY BOOSTER";
                             statusMsg.classList.add('d-none');
                         }
-                    });
+                    }, { onlyOnce: false });
                 }
             });
         }
@@ -193,16 +197,14 @@
         }
 
         async function finishGame() {
+            localStorage.setItem(`done_${session.id}`, todayStr);
             document.getElementById('game-view').style.display = 'none';
             document.getElementById('result-screen').style.display = 'block';
             const r = userResponses; const a1 = r[0].isCorrect, a2 = r[1].isCorrect, a3 = r[2].isCorrect;
             const pKey = (a1?"R":"W")+(a2?"R":"W")+(a3?"R":"W");
             const patterns = {"RRR":"p7","RRW":"p4","RWR":"p5","RWW":"p1","WRR":"p6","WRW":"p2","WWR":"p3","WWW":"p8"};
             const score = userResponses.filter(res => res.isCorrect).length * 10;
-            
-            // ලකුණු Firebase එකට යවනවා
             await set(ref(db, `results/${todayStr}/${session.id}`), { name: session.user.name, score });
-            
             const resData = currentPack.patterns[patterns[pKey]];
             document.getElementById('result-msg').innerText = resData.msg;
             document.getElementById('result-url').href = resData.url;
