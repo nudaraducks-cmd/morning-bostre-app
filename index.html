@@ -11,53 +11,97 @@
     <style>
         :root { --bg: #0b0f1a; --accent: #00d2ff; --glass: rgba(255, 255, 255, 0.05); }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; min-height: 100vh; overflow-x: hidden; }
-
-        /* ✨ පසුබිමේ ඇති Pulsing Animation එක */
-        body::before {
-            content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle at 50% 50%, rgba(0, 210, 255, 0.05) 0%, transparent 80%);
-            z-index: -1; animation: pulseBg 8s infinite alternate;
-        }
+        body::before { content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at 50% 50%, rgba(0, 210, 255, 0.05) 0%, transparent 80%); z-index: -1; animation: pulseBg 8s infinite alternate; }
         @keyframes pulseBg { 0% { opacity: 0.5; transform: scale(1); } 100% { opacity: 1; transform: scale(1.2); } }
-
-        .glass-card { 
-            background: var(--glass); backdrop-filter: blur(15px); 
-            border: 1px solid rgba(255,255,255,0.1); border-radius: 30px; 
-            padding: 25px; margin-bottom: 20px; transition: 0.3s ease;
-        }
-
-        /* 🚀 Pulse Button Animation */
-        .booster-btn { 
-            background: linear-gradient(135deg, #00d2ff, #3a7bd5); border: none; 
-            padding: 20px; border-radius: 20px; font-weight: 800; width: 100%; color: white; 
-            box-shadow: 0 0 15px rgba(0,210,255,0.3); animation: pulseBtn 2s infinite;
-        }
-        @keyframes pulseBtn {
-            0% { box-shadow: 0 0 0 0 rgba(0,210,255,0.4); }
-            70% { box-shadow: 0 0 0 15px rgba(0,210,255,0); }
-            100% { box-shadow: 0 0 0 0 rgba(0,210,255,0); }
-        }
-
-        /* 🔥 Floating Flame */
-        .flame-icon { color: #ff4500; animation: flicker 0.6s infinite alternate, floating 3s ease-in-out infinite; }
-        
-        /* Loading Screen */
-        #loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 99999; }
-        .spinner-grow { color: var(--accent); }
+        .glass-card { background: var(--glass); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.1); border-radius: 30px; padding: 25px; margin-bottom: 20px; }
+        .teacher-header { display: flex; align-items: center; justify-content: center; gap: 20px; padding: 40px 20px; background: linear-gradient(180deg, rgba(0,210,255,0.15), transparent); border-radius: 0 0 40px 40px; margin-bottom: 25px; }
+        .teacher-img { width: 90px; height: 90px; border-radius: 20px; border: 2px solid var(--accent); object-fit: cover; }
+        .booster-btn { background: linear-gradient(135deg, #00d2ff, #3a7bd5); border: none; padding: 20px; border-radius: 20px; font-weight: 800; width: 100%; color: white; animation: pulseBtn 2s infinite; }
+        @keyframes pulseBtn { 0% { box-shadow: 0 0 0 0 rgba(0,210,255,0.4); } 70% { box-shadow: 0 0 0 15px rgba(0,210,255,0); } 100% { box-shadow: 0 0 0 0 rgba(0,210,255,0); } }
+        .flame-icon { color: #ff4500; animation: flicker 0.6s infinite alternate; }
+        #game-view, #review-view { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 10000; padding: 20px; overflow-y: auto; }
+        .option-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 16px; margin-bottom: 12px; border-radius: 15px; width: 100%; text-align: left; transition: 0.3s; }
+        .option-btn.selected { background: var(--accent); color: #000; font-weight: bold; transform: scale(1.02); }
     </style>
 </head>
-<body onload="hideLoader()">
+<body>
 
-<div id="loader"><div class="spinner-grow" role="status"></div></div>
-
-<div class="content-wrapper animate__animated animate__fadeIn">
+    <div id="login-screen" class="container py-5" style="max-width: 400px;">
+        <div class="glass-card text-center animate__animated animate__zoomIn">
+            <h5 class="fw-bold mb-4">Student Login</h5>
+            <input type="text" id="log_id" class="form-control mb-3 bg-dark text-white border-0 py-3 rounded-pill text-center" placeholder="ID Number">
+            <input type="password" id="log_pass" class="form-control mb-4 bg-dark text-white border-0 py-3 rounded-pill text-center" placeholder="Password">
+            <button class="btn btn-primary w-100 py-3 rounded-pill fw-bold" onclick="handleLogin()">LOGIN</button>
+        </div>
     </div>
 
-<script>
-    function hideLoader() { 
-        setTimeout(() => { document.getElementById('loader').style.display = 'none'; }, 800);
-    }
-    // පරණ සියලුම JavaScript logic මෙතැන එලෙසම පවතී
-</script>
+    <div id="dashboard" class="container" style="display:none; max-width: 600px;">
+        <div class="teacher-header animate__animated animate__fadeInDown">
+            <img src="https://via.placeholder.com/90" class="teacher-img" id="teacher-img">
+            <div><h4 class="fw-bold mb-0">MADAWA WIJESINGHA</h4><div class="small text-accent">CHEMISTRY BOOSTER</div></div>
+        </div>
+        
+        <div class="d-flex justify-content-between mb-3 animate__animated animate__fadeIn">
+            <div class="glass-card p-2 px-4 mb-0"><i class="fas fa-fire flame-icon me-2"></i> <span id="streak-count">0</span> Day Streak</div>
+            <div class="glass-card p-2 px-4 mb-0"><i class="fas fa-users text-accent me-2"></i> <span id="global-count">0</span> Done</div>
+        </div>
+
+        <div class="glass-card animate__animated animate__fadeInUp">
+            <h5 class="fw-bold mb-1" id="greeting">...</h5>
+            <p id="u-name" class="text-white-50 small mb-4"></p>
+            <button id="start-btn" class="booster-btn" onclick="initBooster()">START TODAY BOOSTER</button>
+        </div>
+    </div>
+
+    <div id="game-view">
+        <div class="container py-3">
+            <div id="q-box" class="animate__animated animate__fadeIn">
+                <h5 id="q-text" class="mb-4 text-center fw-bold"></h5>
+                <div id="options-box"></div>
+            </div>
+            <button id="next-btn" class="btn btn-primary w-100 py-3 rounded-pill mt-4 fw-bold" onclick="nextQuestion()">NEXT QUESTION</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, get, set, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        const firebaseConfig = { 
+            apiKey: "AIzaSyDMjYdugjdCiJG9uc9Ju_7n0qkljAiC9FE", 
+            authDomain: "morning-boost-48c64.firebaseapp.com", 
+            databaseURL: "https://morning-boost-48c64-default-rtdb.firebaseio.com", 
+            projectId: "morning-boost-48c64" 
+        };
+        const app = initializeApp(firebaseConfig); const db = getDatabase(app);
+        const todayStr = new Date().toISOString().split('T')[0];
+
+        window.handleLogin = async () => {
+            const id = document.getElementById('log_id').value;
+            const pass = document.getElementById('log_pass').value;
+            const snap = await get(ref(db, `students/${id}`));
+            if(snap.exists() && snap.val().password === pass){
+                localStorage.setItem('mb_user', JSON.stringify({id, name: snap.val().name}));
+                location.reload();
+            } else alert("Invalid ID or Password!");
+        };
+
+        const user = JSON.parse(localStorage.getItem('mb_user'));
+        if(user){
+            document.getElementById('login-screen').style.display='none';
+            document.getElementById('dashboard').style.display='block';
+            document.getElementById('u-name').innerText = user.name;
+            // Load stats logic here...
+        }
+        
+        window.initBooster = async () => {
+            const snap = await get(ref(db, `daily_packs/${todayStr}`));
+            if(snap.exists()){
+                // Quiz logic here...
+                document.getElementById('dashboard').style.display='none';
+                document.getElementById('game-view').style.display='block';
+            } else alert("No Booster for today!");
+        };
+    </script>
 </body>
 </html>
