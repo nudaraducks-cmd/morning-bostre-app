@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="si">
 <head>
@@ -7,21 +6,49 @@
     <title>Morning Booster | Madawa Wijesingha</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <style>
         :root { --bg: #0b0f1a; --accent: #00d2ff; --glass: rgba(255, 255, 255, 0.05); }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; min-height: 100vh; display: flex; flex-direction: column; }
-        .teacher-header { display: flex; align-items: center; justify-content: center; gap: 20px; padding: 40px 20px; background: linear-gradient(180deg, rgba(0,210,255,0.15), transparent); border-radius: 0 0 40px 40px; margin-bottom: 25px; }
-        .teacher-img { width: 90px; height: 90px; border-radius: 20px; border: 2px solid var(--accent); object-fit: cover; }
+        
+        /* 🕺 Animated Sir Image */
+        .sir-container { position: relative; display: flex; flex-direction: column; align-items: center; margin-top: 10px; }
+        .floating-sir { 
+            width: 110px; height: 110px; border-radius: 50%; 
+            border: 3px solid var(--accent); object-fit: cover; 
+            animation: float 3s ease-in-out infinite; 
+            box-shadow: 0 0 20px rgba(0, 210, 255, 0.3);
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-15px) rotate(3deg); }
+        }
+
+        /* 💬 Speech Bubble */
+        .speech-bubble {
+            background: white; color: #333; border-radius: 15px;
+            padding: 8px 15px; font-size: 0.85rem; font-weight: 700;
+            margin-bottom: 15px; position: relative; 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            animation: fadeIn 1s ease-in;
+        }
+        .speech-bubble::after {
+            content: ''; position: absolute; bottom: -10px; left: 50%;
+            border-left: 10px solid transparent; border-right: 10px solid transparent;
+            border-top: 10px solid white; transform: translateX(-50%);
+        }
+
+        .teacher-header { display: flex; align-items: center; justify-content: center; gap: 20px; padding: 30px 20px; background: linear-gradient(180deg, rgba(0,210,255,0.15), transparent); border-radius: 0 0 40px 40px; margin-bottom: 20px; }
         .glass-card { background: var(--glass); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); border-radius: 25px; padding: 25px; margin-bottom: 20px; }
         .booster-btn { background: linear-gradient(135deg, #00d2ff, #3a7bd5); border: none; padding: 18px; border-radius: 20px; font-weight: 800; width: 100%; color: white; box-shadow: 0 8px 20px rgba(0,210,255,0.2); transition: 0.3s; }
-        .booster-btn:disabled { background: #444; color: #888; box-shadow: none; cursor: not-allowed; }
+        
+        .stat-badge { background: rgba(255,255,255,0.05); padding: 5px 15px; border-radius: 50px; font-size: 0.8rem; border: 1px solid rgba(255,255,255,0.1); }
         #game-view, #review-view { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 10000; padding: 20px; overflow-y: auto; }
         .timer-circle { width: 65px; height: 65px; border: 3px solid var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-weight: bold; font-size: 1.4rem; color: var(--accent); }
         .option-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 16px; margin-bottom: 12px; border-radius: 15px; width: 100%; text-align: left; }
         .option-btn.selected { background: var(--accent); font-weight: bold; color: #000; }
-        .badge-master { background: linear-gradient(45deg, #ffd700, #ffa500); color: #000; padding: 10px 20px; border-radius: 50px; font-weight: 800; display: inline-block; margin-top: 15px; animation: pop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        @keyframes pop { 0% { transform: scale(0); } 100% { transform: scale(1); } }
+        .badge-master { background: linear-gradient(45deg, #ffd700, #ffa500); color: #000; padding: 10px 20px; border-radius: 50px; font-weight: 800; display: inline-block; margin-top: 15px; }
     </style>
 </head>
 <body>
@@ -30,12 +57,11 @@
         <audio id="snd-correct" src="https://cdn.pixabay.com/audio/2021/08/04/audio_bbd134918e.mp3"></audio>
         <audio id="snd-wrong" src="https://cdn.pixabay.com/audio/2022/03/10/audio_c030d35967.mp3"></audio>
 
-        <div class="teacher-header text-center">
-            <img src="ChatGPT Image Dec 28, 2025, 08_23_10 AM.png" class="teacher-img">
-            <div><h4 class="fw-bold mb-0">MADAWA WIJESINGHA</h4><div class="small text-accent">CHEMISTRY BOOSTER</div></div>
-        </div>
-
-        <div id="login-screen" class="container" style="max-width: 400px;">
+        <div id="login-screen" class="container py-5" style="max-width: 400px;">
+            <div class="teacher-header text-center mb-4">
+                <img src="ChatGPT Image Dec 28, 2025, 08_23_10 AM.png" style="width: 80px; border-radius: 20px; border: 2px solid var(--accent);">
+                <h5 class="fw-bold mt-2">MADAWA WIJESINGHA</h5>
+            </div>
             <div class="glass-card text-center">
                 <h5 class="fw-bold mb-4">Student Login</h5>
                 <input type="text" id="log_id" class="form-control mb-3 bg-dark text-white border-0 py-3 rounded-pill text-center" placeholder="ID Number">
@@ -45,17 +71,25 @@
         </div>
 
         <div id="dashboard" class="container" style="display:none; max-width: 600px;">
+            <div class="sir-container">
+                <div class="speech-bubble" id="sir-message">Good Morning!</div>
+                <img src="ChatGPT Image Dec 28, 2025, 08_23_10 AM.png" class="floating-sir">
+            </div>
+
+            <div class="text-center mt-3 mb-4">
+                <h4 class="fw-bold mb-0">MADAWA WIJESINGHA</h4>
+                <div class="small text-accent">CHEMISTRY BOOSTER</div>
+            </div>
+
             <div class="glass-card">
-                <h5 class="fw-bold mb-1" id="greeting-text">...</h5>
-                <p id="user-name" class="text-white-50 small mb-4"></p>
-                
-                <p id="completion-status" class="text-warning small mb-2 d-none fw-bold">⚠️ You have already completed today's booster!</p>
-                <button id="start-btn" class="booster-btn mb-4" onclick="initBooster()">START TODAY BOOSTER</button>
-                
-                <div class="d-flex justify-content-between align-items-center">
+                <p id="user-name" class="text-white-50 small mb-2"></p>
+                <div class="d-flex justify-content-between mb-4">
                     <span class="stat-badge"><i class="fas fa-fire me-1 text-warning"></i> Active Streak</span>
-                    <span class="stat-badge"><i class="fas fa-users me-1"></i> <span id="global-count">0</span> Played Today</span>
+                    <span class="stat-badge"><i class="fas fa-users me-1 text-info"></i> <span id="global-count">0</span> Done Today</span>
                 </div>
+                
+                <p id="completion-status" class="text-warning small mb-2 d-none fw-bold text-center">⚠️ You have completed today's booster!</p>
+                <button id="start-btn" class="booster-btn mb-2" onclick="initBooster()">START TODAY BOOSTER</button>
             </div>
             <div class="glass-card"><canvas id="progressChart" height="180"></canvas></div>
         </div>
@@ -65,7 +99,6 @@
                 <div class="timer-circle" id="timer">60</div>
                 <div id="q-box">
                     <h5 id="q-text" class="mb-4 text-center fw-bold"></h5>
-                    <div id="q-img-box" class="mb-4 text-center"></div>
                     <div id="options-box"></div>
                 </div>
                 <button id="next-btn" class="btn btn-primary w-100 py-3 rounded-pill mt-4 fw-bold" onclick="nextQuestion()">NEXT QUESTION</button>
@@ -78,8 +111,7 @@
                 <h2 class="text-accent fw-bold mb-3 mt-3">COMPLETED!</h2>
                 <p id="result-msg" class="mb-4 px-3 fw-bold"></p>
                 <a id="result-url" href="#" target="_blank" class="btn btn-success btn-lg rounded-pill px-5 fw-bold mb-3 w-100 shadow">Watch Explanation</a>
-                <button class="btn btn-outline-info rounded-pill w-100 fw-bold mb-3" onclick="showReview()">Review Answers</button>
-                <button class="btn btn-link text-white-50 text-decoration-none" onclick="location.reload()">Back to Dashboard</button>
+                <button class="btn btn-outline-info rounded-pill w-100 fw-bold" onclick="showReview()">Review Answers</button>
             </div>
         </div>
 
@@ -97,20 +129,12 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, get, set, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-        const firebaseConfig = { apiKey: "AIzaSyDMjYdugjdCiJG9uc9Ju_7n0qkljAiC9FE", authDomain: "morning-boost-48c64.firebaseapp.com", databaseURL: "https://morning-boost-48c64-default-rtdb.firebaseio.com", projectId: "morning-boost-48c64", storageBucket: "morning-boost-48c64.firebasestorage.app", messagingSenderId: "140528602458", appId: "1:140528602458:web:34e14db5a5d93d1db13763" };
+        const firebaseConfig = { apiKey: "AIzaSyDMjYdugjdCiJG9uc9Ju_7n0qkljAiC9FE", authDomain: "morning-boost-48c64.firebaseapp.com", databaseURL: "https://morning-boost-48c64-default-rtdb.firebaseio.com", projectId: "morning-boost-48c64" };
         const app = initializeApp(firebaseConfig); const db = getDatabase(app);
         const session = JSON.parse(localStorage.getItem('mb_session'));
         const todayStr = new Date().toISOString().split('T')[0];
         
         let currentPack, qKeys, currentQIndex = 0, userResponses = [], selectedIdx = null, timerInterval;
-
-        // Smart Enter Logic
-        document.addEventListener('keydown', (e) => {
-            if(e.key === 'Enter') {
-                if(document.activeElement.id === 'log_id') document.getElementById('log_pass').focus();
-                else if(document.activeElement.id === 'log_pass') handleLogin();
-            }
-        });
 
         window.handleLogin = async () => {
             const id = document.getElementById('log_id').value.trim();
@@ -125,25 +149,23 @@
         if(session) {
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('dashboard').style.display = 'block';
-            document.getElementById('user-name').innerText = session.user.name;
-            checkCompletion();
+            document.getElementById('user-name').innerText = "Hello, " + session.user.name;
             syncUI();
-        }
-
-        // --- නව මනෝවිද්‍යාත්මක ආරක්ෂාව (Once a day) ---
-        function checkCompletion() {
-            const lastDone = localStorage.getItem(`done_${session.id}`);
-            if(lastDone === todayStr) {
-                document.getElementById('start-btn').disabled = true;
-                document.getElementById('start-btn').innerText = "BOOSTER COMPLETED";
-                document.getElementById('completion-status').classList.remove('d-none');
-            }
         }
 
         function syncUI() {
             const hr = new Date().getHours();
-            document.getElementById('greeting-text').innerText = hr < 12 ? "Good Morning! ☀️" : "Good Day! ☕";
+            const msgEl = document.getElementById('sir-message');
+            if(hr < 12) msgEl.innerText = "සුබ උදෑසනක්! අදත් දිනමු නේද? 🔥";
+            else if(hr < 18) msgEl.innerText = "ඔයාගේ වැඩ කොහොමද? බූස්ටර් එක කරමු! 👍";
+            else msgEl.innerText = "වැඩ ටික ඉවර කළා නේද? සුබ රාත්‍රියක්! ✨";
+
             onValue(ref(db, `results/${todayStr}`), (s) => document.getElementById('global-count').innerText = s.exists() ? Object.keys(s.val()).length : 0);
+            if(localStorage.getItem(`done_${session.id}`) === todayStr) {
+                document.getElementById('start-btn').disabled = true;
+                document.getElementById('start-btn').innerText = "DONE ✅";
+                document.getElementById('completion-status').classList.remove('d-none');
+            }
             loadChart();
         }
 
@@ -160,7 +182,6 @@
             if(currentQIndex >= qKeys.length) return finishGame();
             selectedIdx = null; const q = currentPack.questions[qKeys[currentQIndex]];
             document.getElementById('q-text').innerText = q.text;
-            document.getElementById('q-img-box').innerHTML = q.img ? `<img src="${q.img}" class="img-fluid rounded-4 mb-3" style="max-height:200px">` : "";
             const box = document.getElementById('options-box'); box.innerHTML = "";
             q.options.forEach((opt, i) => { if(opt) box.innerHTML += `<button class="option-btn" onclick="sel(${i+1}, ${q.correct})">${opt}</button>`; });
             startTimer(60);
@@ -185,24 +206,18 @@
         }
 
         async function finishGame() {
-            // අද දින සඳහා වැඩ අවසන් බව සටහන් කිරීම
             localStorage.setItem(`done_${session.id}`, todayStr);
-
             document.getElementById('game-view').style.display = 'none';
             document.getElementById('result-screen').style.display = 'block';
             const r = userResponses; const a1 = r[0].isCorrect, a2 = r[1].isCorrect, a3 = r[2].isCorrect;
-            let p = (a1 && !a2 && !a3) ? "p1" : (!a1 && a2 && !a3) ? "p2" : (!a1 && !a2 && a3) ? "p3" : (a1 && a2 && !a3) ? "p4" : (a1 && !a2 && a3) ? "p5" : (!a1 && a2 && a3) ? "p6" : (a1 && a2 && a3) ? "p7" : "p8";
-            
-            if(a1 && a2 && a3) {
-                confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-                document.getElementById('badge-container').innerHTML = `<div class="badge-master"><i class="fas fa-crown me-2"></i> MASTER OF CHEMISTRY</div>`;
-            }
-
+            const pKey = (a1?"R":"W")+(a2?"R":"W")+(a3?"R":"W");
+            const patterns = {"RRR":"p7","RRW":"p4","RWR":"p5","RWW":"p1","WRR":"p6","WRW":"p2","WWR":"p3","WWW":"p8"};
             const score = userResponses.filter(res => res.isCorrect).length * 10;
             await set(ref(db, `results/${todayStr}/${session.id}`), { name: session.user.name, score });
-            const resultData = currentPack.patterns[p];
-            document.getElementById('result-msg').innerText = resultData.msg;
-            document.getElementById('result-url').href = resultData.url;
+            const res = currentPack.patterns[patterns[pKey]];
+            document.getElementById('result-msg').innerText = res.msg;
+            document.getElementById('result-url').href = res.url;
+            if(pKey === "RRR") confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
         }
 
         window.showReview = () => {
@@ -211,7 +226,7 @@
             const list = document.getElementById('review-list'); list.innerHTML = "";
             userResponses.forEach((res, i) => {
                 const q = currentPack.questions[qKeys[i]];
-                list.innerHTML += `<div class="glass-card mb-2 ${res.isCorrect ? 'border-success' : 'border-danger'}"><p class="small mb-1">Q${i+1}: ${q.text}</p><div class="small fw-bold ${res.isCorrect ? 'text-success' : 'text-danger'}">Correct: ${q.options[q.correct-1]}</div></div>`;
+                list.innerHTML += `<div class="glass-card mb-2 border-${res.isCorrect?'success':'danger'}"><p class="small mb-1">Q${i+1}: ${q.text}</p><div class="small fw-bold text-${res.isCorrect?'success':'danger'}">Correct: ${q.options[q.correct-1]}</div></div>`;
             });
         };
 
