@@ -11,55 +11,78 @@
     <style>
         :root { --bg: #0b0f1a; --accent: #00d2ff; --glass: rgba(255, 255, 255, 0.05); }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; min-height: 100vh; overflow-x: hidden; }
-        body::before { content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at 50% 50%, rgba(0, 210, 255, 0.05) 0%, transparent 80%); z-index: -1; animation: pulseBg 8s infinite alternate; }
+        
+        /* Smooth Background Animation */
+        body::before { content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at 50% 50%, rgba(0, 210, 255, 0.08) 0%, transparent 80%); z-index: -1; animation: pulseBg 8s infinite alternate; }
         @keyframes pulseBg { 0% { opacity: 0.5; transform: scale(1); } 100% { opacity: 1; transform: scale(1.2); } }
-        .glass-card { background: var(--glass); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.1); border-radius: 30px; padding: 25px; margin-bottom: 20px; }
-        .teacher-header { display: flex; align-items: center; justify-content: center; gap: 20px; padding: 40px 20px; background: linear-gradient(180deg, rgba(0,210,255,0.15), transparent); border-radius: 0 0 40px 40px; margin-bottom: 25px; }
-        .teacher-img { width: 90px; height: 90px; border-radius: 20px; border: 2px solid var(--accent); object-fit: cover; }
-        .booster-btn { background: linear-gradient(135deg, #00d2ff, #3a7bd5); border: none; padding: 20px; border-radius: 20px; font-weight: 800; width: 100%; color: white; animation: pulseBtn 2s infinite; }
-        @keyframes pulseBtn { 0% { box-shadow: 0 0 0 0 rgba(0,210,255,0.4); } 70% { box-shadow: 0 0 0 15px rgba(0,210,255,0); } 100% { box-shadow: 0 0 0 0 rgba(0,210,255,0); } }
+
+        .glass-card { background: var(--glass); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.1); border-radius: 30px; padding: 25px; margin-bottom: 20px; transition: 0.3s; }
+        .teacher-header { display: flex; align-items: center; justify-content: center; gap: 20px; padding: 30px; background: linear-gradient(180deg, rgba(0,210,255,0.1), transparent); border-radius: 0 0 40px 40px; }
+        .teacher-img { width: 80px; height: 80px; border-radius: 20px; border: 2px solid var(--accent); object-fit: cover; }
+        
+        /* 🔥 Streak Flame */
+        .flame-box { display: flex; align-items: center; gap: 8px; background: rgba(255,69,0,0.1); padding: 8px 15px; border-radius: 50px; border: 1px solid rgba(255,69,0,0.3); }
         .flame-icon { color: #ff4500; animation: flicker 0.6s infinite alternate; }
-        #game-view, #review-view { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 10000; padding: 20px; overflow-y: auto; }
+        @keyframes flicker { 0% { transform: scale(1); opacity: 0.8; } 100% { transform: scale(1.2); opacity: 1; } }
+
+        .booster-btn { background: linear-gradient(135deg, #00d2ff, #3a7bd5); border: none; padding: 18px; border-radius: 20px; font-weight: 800; width: 100%; color: white; animation: pulseBtn 2s infinite; }
+        @keyframes pulseBtn { 0% { box-shadow: 0 0 0 0 rgba(0,210,255,0.4); } 70% { box-shadow: 0 0 0 15px rgba(0,210,255,0); } 100% { box-shadow: 0 0 0 0 rgba(0,210,255,0); } }
+
+        #game-view, #result-screen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 10000; padding: 20px; overflow-y: auto; }
         .option-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 16px; margin-bottom: 12px; border-radius: 15px; width: 100%; text-align: left; transition: 0.3s; }
-        .option-btn.selected { background: var(--accent); color: #000; font-weight: bold; transform: scale(1.02); }
+        .option-btn.selected { background: var(--accent); color: #000; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <div id="login-screen" class="container py-5" style="max-width: 400px;">
-        <div class="glass-card text-center animate__animated animate__zoomIn">
-            <h5 class="fw-bold mb-4">Student Login</h5>
-            <input type="text" id="log_id" class="form-control mb-3 bg-dark text-white border-0 py-3 rounded-pill text-center" placeholder="ID Number">
-            <input type="password" id="log_pass" class="form-control mb-4 bg-dark text-white border-0 py-3 rounded-pill text-center" placeholder="Password">
-            <button class="btn btn-primary w-100 py-3 rounded-pill fw-bold" onclick="handleLogin()">LOGIN</button>
+    <div id="login-screen" class="container py-5 animate__animated animate__fadeIn" style="max-width: 400px;">
+        <div class="glass-card text-center">
+            <h4 class="fw-bold mb-4">Student Login</h4>
+            <input type="text" id="log_id" class="form-control mb-3 bg-dark text-white border-0 py-3 text-center rounded-pill" placeholder="ID Number">
+            <input type="password" id="log_pass" class="form-control mb-4 bg-dark text-white border-0 py-3 text-center rounded-pill" placeholder="Password">
+            <button class="btn btn-primary w-100 py-3 rounded-pill fw-bold" onclick="handleLogin()">ENTER BOOSTER</button>
         </div>
     </div>
 
-    <div id="dashboard" class="container" style="display:none; max-width: 600px;">
-        <div class="teacher-header animate__animated animate__fadeInDown">
-            <img src="https://via.placeholder.com/90" class="teacher-img" id="teacher-img">
-            <div><h4 class="fw-bold mb-0">MADAWA WIJESINGHA</h4><div class="small text-accent">CHEMISTRY BOOSTER</div></div>
-        </div>
-        
-        <div class="d-flex justify-content-between mb-3 animate__animated animate__fadeIn">
-            <div class="glass-card p-2 px-4 mb-0"><i class="fas fa-fire flame-icon me-2"></i> <span id="streak-count">0</span> Day Streak</div>
-            <div class="glass-card p-2 px-4 mb-0"><i class="fas fa-users text-accent me-2"></i> <span id="global-count">0</span> Done</div>
+    <div id="dashboard" class="container animate__animated animate__fadeIn" style="display:none; max-width: 600px;">
+        <div class="teacher-header mb-4">
+            <img src="ChatGPT Image Dec 28, 2025, 08_23_10 AM.png" class="teacher-img" onerror="this.src='https://via.placeholder.com/80'">
+            <div><h5 class="fw-bold mb-0">MADAWA WIJESINGHA</h5><p class="small text-accent mb-0">Chemistry Booster</p></div>
         </div>
 
-        <div class="glass-card animate__animated animate__fadeInUp">
-            <h5 class="fw-bold mb-1" id="greeting">...</h5>
-            <p id="u-name" class="text-white-50 small mb-4"></p>
-            <button id="start-btn" class="booster-btn" onclick="initBooster()">START TODAY BOOSTER</button>
+        <div class="d-flex justify-content-between mb-3">
+            <div class="flame-box"><i class="fas fa-fire flame-icon"></i> <span id="streak-txt">0 Day Streak</span></div>
+            <div class="glass-card p-2 px-3 mb-0 small"><i class="fas fa-users me-2"></i><span id="global-count">0</span> Active Today</div>
+        </div>
+
+        <div class="glass-card text-center">
+            <h5 id="greeting" class="fw-bold">Good Morning!</h5>
+            <p id="student-name" class="text-white-50 mb-4"></p>
+            <button id="start-btn" class="booster-btn" onclick="startQuiz()">START TODAY'S BOOSTER</button>
         </div>
     </div>
 
     <div id="game-view">
-        <div class="container py-3">
-            <div id="q-box" class="animate__animated animate__fadeIn">
-                <h5 id="q-text" class="mb-4 text-center fw-bold"></h5>
+        <div class="container py-4">
+            <div class="progress mb-4" style="height: 8px; background: rgba(255,255,255,0.1);">
+                <div id="prog-bar" class="progress-bar bg-info" style="width: 0%"></div>
+            </div>
+            <div id="q-content" class="animate__animated animate__fadeIn">
+                <h5 id="q-text" class="text-center mb-4 fw-bold"></h5>
                 <div id="options-box"></div>
             </div>
-            <button id="next-btn" class="btn btn-primary w-100 py-3 rounded-pill mt-4 fw-bold" onclick="nextQuestion()">NEXT QUESTION</button>
+            <button id="next-btn" class="btn btn-primary w-100 py-3 rounded-pill mt-4 fw-bold" onclick="nextQ()">NEXT QUESTION</button>
+        </div>
+    </div>
+
+    <div id="result-screen">
+        <div class="container py-5 text-center">
+            <div class="glass-card py-5">
+                <h2 class="text-accent fw-bold">COMPLETED!</h2>
+                <p id="res-msg" class="my-4"></p>
+                <a id="res-link" href="#" target="_blank" class="btn btn-success w-100 py-3 rounded-pill fw-bold mb-3">Watch Explanation</a>
+                <button class="btn btn-outline-light w-100 py-3 rounded-pill" onclick="location.reload()">Finish</button>
+            </div>
         </div>
     </div>
 
@@ -67,41 +90,86 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, get, set, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-        const firebaseConfig = { 
-            apiKey: "AIzaSyDMjYdugjdCiJG9uc9Ju_7n0qkljAiC9FE", 
-            authDomain: "morning-boost-48c64.firebaseapp.com", 
-            databaseURL: "https://morning-boost-48c64-default-rtdb.firebaseio.com", 
-            projectId: "morning-boost-48c64" 
-        };
+        const firebaseConfig = { apiKey: "AIzaSyDMjYdugjdCiJG9uc9Ju_7n0qkljAiC9FE", authDomain: "morning-boost-48c64.firebaseapp.com", databaseURL: "https://morning-boost-48c64-default-rtdb.firebaseio.com", projectId: "morning-boost-48c64" };
         const app = initializeApp(firebaseConfig); const db = getDatabase(app);
-        const todayStr = new Date().toISOString().split('T')[0];
+        const today = new Date().toISOString().split('T')[0];
+
+        let currentPack, qKeys, currentIdx = 0, answers = [];
 
         window.handleLogin = async () => {
             const id = document.getElementById('log_id').value;
             const pass = document.getElementById('log_pass').value;
-            const snap = await get(ref(db, `students/${id}`));
-            if(snap.exists() && snap.val().password === pass){
-                localStorage.setItem('mb_user', JSON.stringify({id, name: snap.val().name}));
+            const s = await get(ref(db, `students/${id}`));
+            if(s.exists() && s.val().password === pass) {
+                localStorage.setItem('mb_user', JSON.stringify({id, name: s.val().name}));
                 location.reload();
-            } else alert("Invalid ID or Password!");
+            } else alert("වැරදි ඇතුළත් කිරීමක්!");
         };
 
         const user = JSON.parse(localStorage.getItem('mb_user'));
-        if(user){
-            document.getElementById('login-screen').style.display='none';
-            document.getElementById('dashboard').style.display='block';
-            document.getElementById('u-name').innerText = user.name;
-            // Load stats logic here...
+        if(user) {
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('dashboard').style.display = 'block';
+            document.getElementById('student-name').innerText = user.name;
+            
+            // Streak & Counter
+            onValue(ref(db, `results/${today}`), s => {
+                document.getElementById('global-count').innerText = s.exists() ? Object.keys(s.val()).length : 0;
+            });
+            
+            if(localStorage.getItem('done_'+today)) {
+                document.getElementById('start-btn').disabled = true;
+                document.getElementById('start-btn').innerText = "DONE FOR TODAY ✅";
+            }
         }
-        
-        window.initBooster = async () => {
-            const snap = await get(ref(db, `daily_packs/${todayStr}`));
-            if(snap.exists()){
-                // Quiz logic here...
-                document.getElementById('dashboard').style.display='none';
-                document.getElementById('game-view').style.display='block';
-            } else alert("No Booster for today!");
+
+        window.startQuiz = async () => {
+            const s = await get(ref(db, `daily_packs/${today}`));
+            if(!s.exists()) return alert("අද දිනට ප්‍රශ්න පත්‍රයක් නැත!");
+            currentPack = s.val(); qKeys = Object.keys(currentPack.questions);
+            document.getElementById('dashboard').style.display = 'none';
+            document.getElementById('game-view').style.display = 'block';
+            loadQ();
         };
+
+        function loadQ() {
+            const q = currentPack.questions[qKeys[currentIdx]];
+            document.getElementById('q-text').innerText = q.text;
+            document.getElementById('prog-bar').style.width = ((currentIdx)/3)*100 + "%";
+            const box = document.getElementById('options-box'); box.innerHTML = "";
+            q.options.forEach((o, i) => {
+                if(o) box.innerHTML += `<button class="option-btn" onclick="selectOpt(${i+1})">${o}</button>`;
+            });
+        }
+
+        window.selectOpt = (i) => {
+            window.selected = i;
+            document.querySelectorAll('.option-btn').forEach((b, idx) => {
+                b.classList.toggle('selected', (idx+1)==i);
+            });
+        };
+
+        window.nextQ = () => {
+            if(!window.selected) return alert("පිළිතුරක් තෝරන්න!");
+            answers.push(window.selected == currentPack.questions[qKeys[currentIdx]].correct);
+            currentIdx++; window.selected = null;
+            if(currentIdx < 3) loadQ(); else finish();
+        };
+
+        async function finish() {
+            localStorage.setItem('done_'+today, 'true');
+            document.getElementById('game-view').style.display = 'none';
+            document.getElementById('result-screen').style.display = 'block';
+            
+            const p = (answers[0]?"R":"W")+(answers[1]?"R":"W")+(answers[2]?"R":"W");
+            // Map p to p1-p8 patterns
+            const patterns = {"RRR":"p7","RRW":"p4","RWR":"p5","RWW":"p1","WRR":"p6","WRW":"p2","WWR":"p3","WWW":"p8"};
+            const res = currentPack.patterns[patterns[p]];
+            
+            document.getElementById('res-msg').innerText = res.msg;
+            document.getElementById('res-link').href = res.url;
+            if(p === "RRR") confetti();
+        }
     </script>
 </body>
 </html>
