@@ -17,11 +17,19 @@
         .timer-ring { width: 75px; height: 75px; border: 4px solid var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; margin: 0 auto 20px; box-shadow: 0 0 20px var(--accent); }
         .option-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 16px; margin-bottom: 12px; border-radius: 15px; width: 100%; text-align: left; }
         .option-btn.selected { background: var(--accent); font-weight: bold; }
+        
+        /* Music Control Button */
+        .music-toggle { position: fixed; top: 20px; right: 20px; z-index: 10000; background: var(--accent); border: none; width: 45px; height: 45px; border-radius: 50%; color: white; display: none; box-shadow: 0 0 15px var(--accent); }
+        
         #login-screen, #dashboard, #result-screen { padding: 20px; }
         #dashboard, #result-screen { display: none; }
     </style>
 </head>
 <body>
+
+    <button id="music-btn" class="music-toggle" onclick="toggleMusic()">
+        <i id="m-icon" class="fas fa-play"></i>
+    </button>
 
     <div id="login-screen" class="container mt-5 pt-5">
         <div class="glass-card text-center mx-auto" style="max-width: 400px;">
@@ -65,8 +73,9 @@
         <button class="btn btn-link text-white" onclick="location.reload()">Back Home</button>
     </div>
 
-    <div id="sc-player-container" style="display:none;"></div>
+    <div id="sc-container" style="display:none;"></div>
 
+    <script src="https://w.soundcloud.com/player/api.js"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
@@ -84,7 +93,7 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        let currentPack, qKeys, currentQIndex = 0, userAnswers = [], selectedAns = null, timerInterval;
+        let currentPack, qKeys, currentQIndex = 0, userAnswers = [], selectedAns = null, timerInterval, widget;
 
         window.handleLogin = async function() {
             const id = document.getElementById('log_id').value.trim();
@@ -111,15 +120,24 @@
             currentPack = snap.val();
             qKeys = Object.keys(currentPack.questions);
 
-            // SoundCloud Audio Start
+            // SoundCloud Setup
             if(currentPack.music_url) {
                 const scUrl = encodeURIComponent(currentPack.music_url);
-                document.getElementById('sc-player-container').innerHTML = `<iframe width="100%" height="166" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=${scUrl}&auto_play=true"></iframe>`;
+                document.getElementById('sc-container').innerHTML = `<iframe id="sc-widget" width="100%" height="166" scrolling="no" frameborder="no" allow="autoplay" src="https://w.soundcloud.com/player/?url=${scUrl}&auto_play=false"></iframe>`;
+                widget = SC.Widget(document.getElementById('sc-widget'));
+                document.getElementById('music-btn').style.display = 'block';
             }
 
             document.getElementById('dashboard').style.display = 'none';
             document.getElementById('game-view').style.display = 'block';
             loadQuestion();
+        };
+
+        window.toggleMusic = function() {
+            const icon = document.getElementById('m-icon');
+            widget.toggle();
+            icon.classList.toggle('fa-play');
+            icon.classList.toggle('fa-pause');
         };
 
         function loadQuestion() {
@@ -152,7 +170,8 @@
         async function finishGame() {
             document.getElementById('game-view').style.display = 'none';
             document.getElementById('result-screen').style.display = 'block';
-            document.getElementById('sc-player-container').innerHTML = ""; // Stop music
+            document.getElementById('music-btn').style.display = 'none';
+            if(widget) widget.pause();
 
             const a = userAnswers;
             let p = (a[0]&&!a[1]&&!a[2])?"p1":(!a[0]&&a[1]&&!a[2])?"p2":(!a[0]&&!a[1]&&a[2])?"p3":(a[0]&&a[1]&&!a[2])?"p4":(a[0]&&!a[1]&&a[2])?"p5":(!a[0]&&a[1]&&a[2])?"p6":(a[0]&&a[1]&&a[2])?"p7":"p8";
