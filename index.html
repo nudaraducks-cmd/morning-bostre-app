@@ -18,7 +18,7 @@
         .timer-circle { width: 65px; height: 65px; border: 3px solid var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-weight: bold; font-size: 1.4rem; color: var(--accent); }
         .option-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 16px; margin-bottom: 12px; border-radius: 15px; width: 100%; text-align: left; transition: 0.2s; }
         .option-btn.selected { background: var(--accent); font-weight: bold; border-color: white; color: #000; }
-        .review-card { background: rgba(255,255,255,0.03); border-radius: 20px; padding: 15px; margin-bottom: 15px; border-left: 5px solid transparent; }
+        .review-card { background: rgba(255,255,255,0.03); border-radius: 20px; padding: 20px; margin-bottom: 15px; border-left: 5px solid transparent; }
         .review-card.correct { border-left-color: #28a745; }
         .review-card.wrong { border-left-color: #dc3545; }
         footer h6 { text-shadow: 0 0 10px rgba(0, 210, 255, 0.3); letter-spacing: 2px; }
@@ -27,10 +27,7 @@
 <body>
 
     <div class="content-wrapper">
-        <audio id="snd-correct" src="https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3"></audio>
-        <audio id="snd-wrong" src="https://assets.mixkit.co/active_storage/sfx/2959/2959-preview.mp3"></audio>
-
-        <div class="teacher-header text-center">
+        <audio id="snd-correct" src="https://cdn.pixabay.com/audio/2021/08/04/audio_bbd134918e.mp3"></audio> <audio id="snd-wrong" src="https://cdn.pixabay.com/audio/2022/03/10/audio_c030d35967.mp3"></audio> <div class="teacher-header text-center">
             <img src="ChatGPT Image Dec 28, 2025, 08_23_10 AM.png" class="teacher-img" alt="Madawa Wijesingha">
             <div><h4 class="brand-name fw-bold mb-0">MADAWA WIJESINGHA</h4><div class="brand-sub small text-accent">CHEMISTRY BOOSTER</div></div>
         </div>
@@ -46,7 +43,7 @@
 
         <div id="dashboard" class="container" style="display:none; max-width: 600px;">
             <div class="glass-card">
-                <h5 class="fw-bold mb-1" id="greeting-text">Welcome!</h5>
+                <h5 class="fw-bold mb-1" id="greeting-text">Loading...</h5>
                 <p class="text-white-50 small mb-4" id="user-name">Student Name</p>
                 <button class="booster-btn mb-4" onclick="initBooster()">START TODAY BOOSTER</button>
                 <div class="d-flex justify-content-between align-items-center">
@@ -62,26 +59,30 @@
         <div id="game-view">
             <div class="container py-3">
                 <div class="timer-circle" id="timer">--</div>
-                <div id="q-box"><h5 id="q-text" class="mb-4 text-center fw-bold"></h5><div id="q-img-box" class="mb-4 text-center"></div><div id="options-box"></div></div>
+                <div id="q-box">
+                    <h5 id="q-text" class="mb-4 text-center fw-bold"></h5>
+                    <div id="q-img-box" class="mb-4 text-center"></div>
+                    <div id="options-box"></div>
+                </div>
                 <button id="next-btn" class="btn btn-primary w-100 py-3 rounded-pill mt-4 fw-bold" onclick="nextQuestion()">NEXT QUESTION</button>
             </div>
         </div>
 
         <div id="result-screen" class="container py-5 text-center" style="display:none;">
             <div class="glass-card py-5">
-                <h2 class="text-accent fw-bold mb-3">COMPLETED!</h2>
-                <p id="result-msg" class="mb-4 px-3"></p>
-                <button class="btn btn-outline-info rounded-pill px-4 mb-3 w-100" onclick="showReview()">Review Answers</button>
-                <a id="result-url" href="#" target="_blank" class="btn btn-success btn-lg rounded-pill px-5 fw-bold mb-3 w-100">Watch Video Explanation</a>
-                <button class="btn btn-link text-white-50 text-decoration-none mt-2" onclick="location.reload()">Back to Home</button>
+                <h2 class="text-accent fw-bold mb-3">BOOSTER COMPLETED!</h2>
+                <p id="result-msg" class="mb-4 px-3 fw-bold"></p>
+                <button class="btn btn-outline-info rounded-pill px-4 mb-3 w-100 fw-bold" onclick="showReview()">Review Answers</button>
+                <a id="result-url" href="#" target="_blank" class="btn btn-success btn-lg rounded-pill px-5 fw-bold mb-3 w-100 shadow">Watch Video Explanation</a>
+                <button class="btn btn-link text-white-50 text-decoration-none mt-2" onclick="location.reload()">Back to Dashboard</button>
             </div>
         </div>
 
         <div id="review-view">
             <div class="container py-3">
-                <h4 class="fw-bold text-accent mb-4">Review Your Answers</h4>
+                <h4 class="fw-bold text-accent mb-4"><i class="fas fa-search me-2"></i>Review Answers</h4>
                 <div id="review-list"></div>
-                <button class="btn btn-primary w-100 py-3 rounded-pill mt-4" onclick="location.reload()">Finish Review</button>
+                <button class="btn btn-primary w-100 py-3 rounded-pill mt-4 fw-bold" onclick="location.reload()">Finish & Close</button>
             </div>
         </div>
     </div>
@@ -113,6 +114,15 @@
         const session = JSON.parse(localStorage.getItem('mb_session'));
         let currentPack, qKeys, currentQIndex = 0, userResponses = [], selectedIdx = null, timerInterval;
 
+        // Enter-to-focus Logic for Login
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                const active = document.activeElement;
+                if (active.id === 'log_id') document.getElementById('log_pass').focus();
+                else if (active.id === 'log_pass') handleLogin();
+            }
+        });
+
         window.handleLogin = async function() {
             const id = document.getElementById('log_id').value.trim();
             const pass = document.getElementById('log_pass').value.trim();
@@ -127,10 +137,10 @@
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('dashboard').style.display = 'block';
             document.getElementById('user-name').innerText = session.user.name;
-            syncDashboard();
+            syncUI();
         }
 
-        function syncDashboard() {
+        function syncUI() {
             const hr = new Date().getHours();
             document.getElementById('greeting-text').innerText = hr < 12 ? "Good Morning! ☀️" : hr < 18 ? "Good Afternoon! ☕" : "Good Evening! 🌙";
             const today = new Date().toISOString().split('T')[0];
@@ -141,7 +151,7 @@
         window.initBooster = async function() {
             const today = new Date().toISOString().split('T')[0];
             const snap = await get(ref(db, `daily_packs/${today}`));
-            if(!snap.exists()) return alert("No booster today!");
+            if(!snap.exists()) return alert("No booster available!");
             currentPack = snap.val(); qKeys = Object.keys(currentPack.questions);
             document.getElementById('dashboard').style.display = 'none';
             document.getElementById('game-view').style.display = 'block';
@@ -150,7 +160,8 @@
 
         function loadQuestion() {
             if(currentQIndex >= qKeys.length) return finishGame();
-            selectedIdx = null; const q = currentPack.questions[qKeys[currentQIndex]];
+            selectedIdx = null; 
+            const q = currentPack.questions[qKeys[currentQIndex]];
             document.getElementById('q-text').innerText = q.text;
             document.getElementById('q-img-box').innerHTML = q.img ? `<img src="${q.img}" class="img-fluid rounded-4 mb-3" style="max-height:200px">` : "";
             const box = document.getElementById('options-box'); box.innerHTML = "";
@@ -168,7 +179,11 @@
 
         window.nextQuestion = () => {
             if(selectedIdx === null) return alert("Select an answer!");
-            userResponses.push({ selected: selectedIdx, correct: currentPack.questions[qKeys[currentQIndex]].correct });
+            userResponses.push({ 
+                selected: selectedIdx, 
+                correct: currentPack.questions[qKeys[currentQIndex]].correct,
+                isCorrect: (selectedIdx == currentPack.questions[qKeys[currentQIndex]].correct)
+            });
             currentQIndex++; clearInterval(timerInterval); loadQuestion();
         };
 
@@ -176,20 +191,22 @@
             let t = s; const el = document.getElementById('timer');
             timerInterval = setInterval(() => { 
                 t--; el.innerText = t; el.style.color = t <= 10 ? "#ff4444" : "var(--accent)";
-                if(t <= 0){ clearInterval(timerInterval); if(selectedIdx===null) userResponses.push({selected:0, correct:currentPack.questions[qKeys[currentQIndex]].correct}); nextQuestion(); }
+                if(t <= 0){ clearInterval(timerInterval); if(selectedIdx===null) selectedIdx = 0; nextQuestion(); }
             }, 1000);
         }
 
         async function finishGame() {
             document.getElementById('game-view').style.display = 'none';
             document.getElementById('result-screen').style.display = 'block';
-            const score = userResponses.filter(r => r.selected == r.correct).length * 10;
+            const r = userResponses;
+            const a1 = r[0].isCorrect, a2 = r[1].isCorrect, a3 = r[2].isCorrect;
+            let p = (a1 && !a2 && !a3) ? "p1" : (!a1 && a2 && !a3) ? "p2" : (!a1 && !a2 && a3) ? "p3" : (a1 && a2 && !a3) ? "p4" : (a1 && !a2 && a3) ? "p5" : (!a1 && a2 && a3) ? "p6" : (a1 && a2 && a3) ? "p7" : "p8";
+            const score = userResponses.filter(res => res.isCorrect).length * 10;
             const today = new Date().toISOString().split('T')[0];
             await set(ref(db, `results/${today}/${session.id}`), { name: session.user.name, score });
-            const r = userResponses; 
-            const pKey = (r[0].selected==r[0].correct && r[1].selected!=r[1].correct && r[2].selected!=r[2].correct) ? "p1" : "p8"; // Simplified for logic
-            document.getElementById('result-msg').innerText = currentPack.patterns[pKey]?.msg || "Booster Completed!";
-            document.getElementById('result-url').href = currentPack.patterns[pKey]?.url || "#";
+            const resultData = currentPack.patterns[p];
+            document.getElementById('result-msg').innerText = resultData.msg;
+            document.getElementById('result-url').href = resultData.url;
         }
 
         window.showReview = () => {
@@ -198,15 +215,8 @@
             const list = document.getElementById('review-list'); list.innerHTML = "";
             userResponses.forEach((res, i) => {
                 const q = currentPack.questions[qKeys[i]];
-                const isCorrect = res.selected == res.correct;
-                list.innerHTML += `
-                <div class="review-card ${isCorrect ? 'correct' : 'wrong'}">
-                    <p class="fw-bold mb-2">Q${i+1}: ${q.text}</p>
-                    <div class="small ${isCorrect ? 'text-success' : 'text-danger'}">
-                        Your Answer: ${res.selected === 0 ? "No Answer" : q.options[res.selected-1]} <br>
-                        Correct Answer: ${q.options[res.correct-1]}
-                    </div>
-                </div>`;
+                const isCorrect = res.isCorrect;
+                list.innerHTML += `<div class="review-card ${isCorrect ? 'correct' : 'wrong'}"><p class="fw-bold mb-2">Q${i+1}: ${q.text}</p><div class="small"><div class="${isCorrect ? 'text-success' : 'text-danger'}">Your Answer: ${res.selected === 0 ? "No Answer" : q.options[res.selected-1]}</div><div class="text-success fw-bold">Correct Answer: ${q.options[res.correct-1]}</div></div></div>`;
             });
         };
 
@@ -215,11 +225,7 @@
             if(!snap.exists()) return;
             const dates = Object.keys(snap.val()).sort().slice(-7);
             const scores = dates.map(d => snap.val()[d][session.id]?.score || 0);
-            new Chart(document.getElementById('progressChart'), {
-                type: 'line',
-                data: { labels: dates, datasets: [{ data: scores, borderColor: '#00d2ff', backgroundColor: 'rgba(0,210,255,0.1)', fill: true, tension: 0.4 }] },
-                options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, max: 35 } } }
-            });
+            new Chart(document.getElementById('progressChart'), { type: 'line', data: { labels: dates, datasets: [{ data: scores, borderColor: '#00d2ff', backgroundColor: 'rgba(0,210,255,0.1)', fill: true, tension: 0.4 }] }, options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, max: 35 } } } });
         }
     </script>
 </body>
