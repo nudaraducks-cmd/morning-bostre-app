@@ -8,8 +8,10 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         :root { --bg: #0b0f1a; --accent: #00d2ff; --glass: rgba(255, 255, 255, 0.05); }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; min-height: 100vh; overflow-x: hidden; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; min-height: 100vh; display: flex; flex-direction: column; }
         
+        .content-wrapper { flex: 1; }
+
         .teacher-header { 
             display: flex; align-items: center; justify-content: center; gap: 20px; padding: 40px 20px; 
             background: linear-gradient(180deg, rgba(0,210,255,0.15), transparent); border-radius: 0 0 40px 40px; margin-bottom: 25px;
@@ -17,82 +19,98 @@
         .teacher-img { width: 90px; height: 90px; border-radius: 20px; border: 2px solid var(--accent); object-fit: cover; }
         
         .glass-card { background: var(--glass); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); border-radius: 25px; padding: 25px; margin-bottom: 20px; position: relative; }
-        .booster-btn { background: linear-gradient(135deg, #00d2ff, #3a7bd5); border: none; padding: 18px; border-radius: 20px; font-weight: 800; width: 100%; color: white; box-shadow: 0 8px 20px rgba(0,210,255,0.2); }
+        .booster-btn { background: linear-gradient(135deg, #00d2ff, #3a7bd5); border: none; padding: 18px; border-radius: 20px; font-weight: 800; width: 100%; color: white; box-shadow: 0 8px 20px rgba(0,210,255,0.2); transition: 0.3s; }
+        .booster-btn:active { transform: scale(0.98); }
         
         .stat-badge { background: rgba(0, 210, 255, 0.1); border: 1px solid var(--accent); color: var(--accent); padding: 5px 15px; border-radius: 50px; font-size: 0.8rem; font-weight: bold; }
         
         #game-view { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 10000; padding: 20px; overflow-y: auto; }
-        .timer-circle { width: 65px; height: 65px; border: 3px solid var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-weight: bold; font-size: 1.4rem; color: var(--accent); }
-        .option-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 16px; margin-bottom: 12px; border-radius: 15px; width: 100%; text-align: left; }
-        .option-btn.selected { background: var(--accent); font-weight: bold; border-color: white; }
+        .timer-circle { width: 65px; height: 65px; border: 3px solid var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-weight: bold; font-size: 1.4rem; color: var(--accent); transition: 0.3s; }
+        .option-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 16px; margin-bottom: 12px; border-radius: 15px; width: 100%; text-align: left; transition: 0.2s; }
+        .option-btn.selected { background: var(--accent); font-weight: bold; border-color: white; color: #000; }
         
-        /* Sound Toggle Switch */
-        .sound-control { position: absolute; top: 15px; right: 20px; font-size: 1.2rem; cursor: pointer; color: var(--accent); }
+        .sound-control { position: absolute; top: 15px; right: 20px; font-size: 1.2rem; cursor: pointer; color: var(--accent); z-index: 10; }
+
+        /* Footer Branding */
+        footer h6 { text-shadow: 0 0 10px rgba(0, 210, 255, 0.3); letter-spacing: 2px; transition: 0.3s; }
+        footer h6:hover { opacity: 1 !important; transform: translateY(-2px); }
     </style>
 </head>
 <body>
 
-    <audio id="snd-correct" src="https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3"></audio>
-    <audio id="snd-wrong" src="https://assets.mixkit.co/active_storage/sfx/2959/2959-preview.mp3"></audio>
+    <div class="content-wrapper">
+        <audio id="snd-correct" src="https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3"></audio>
+        <audio id="snd-wrong" src="https://assets.mixkit.co/active_storage/sfx/2959/2959-preview.mp3"></audio>
 
-    <div class="teacher-header text-center">
-        <img src="ChatGPT Image Dec 28, 2025, 08_23_10 AM.png" class="teacher-img" alt="Madawa Wijesingha">
-        <div>
-            <h4 class="brand-name fw-bold mb-0">MADAWA WIJESINGHA</h4>
-            <div class="brand-sub small text-accent">CHEMISTRY BOOSTER</div>
-        </div>
-    </div>
-
-    <div id="login-screen" class="container" style="max-width: 400px;">
-        <div class="glass-card text-center">
-            <h5 class="fw-bold mb-4">Student Login</h5>
-            <input type="text" id="log_id" class="form-control mb-3 bg-dark text-white border-0 py-3 rounded-pill text-center" placeholder="ID Number">
-            <input type="password" id="log_pass" class="form-control mb-4 bg-dark text-white border-0 py-3 rounded-pill text-center" placeholder="Password">
-            <button class="btn btn-primary w-100 py-3 rounded-pill fw-bold" onclick="handleLogin()">LOGIN</button>
-        </div>
-    </div>
-
-    <div id="dashboard" class="container" style="display:none; max-width: 600px;">
-        <div class="glass-card">
-            <div class="sound-control" onclick="toggleSFX()"><i id="sfx-icon" class="fas fa-volume-up"></i></div>
-            <h5 class="fw-bold mb-1" id="greeting-text">Good Morning!</h5>
-            <p class="text-white-50 small mb-4" id="user-name">Student Name</p>
-            
-            <button class="booster-btn mb-4" onclick="initBooster()">START TODAY BOOSTER</button>
-            
-            <div class="d-flex justify-content-between align-items-center">
-                <span class="small text-white-50">Global Activity:</span>
-                <span class="stat-badge"><i class="fas fa-users me-1"></i> <span id="global-count">0</span> Students Played</span>
+        <div class="teacher-header text-center">
+            <img src="ChatGPT Image Dec 28, 2025, 08_23_10 AM.png" class="teacher-img" alt="Madawa Wijesingha">
+            <div>
+                <h4 class="brand-name fw-bold mb-0">MADAWA WIJESINGHA</h4>
+                <div class="brand-sub small text-accent">CHEMISTRY BOOSTER</div>
             </div>
         </div>
 
-        <div class="glass-card">
-            <h6 class="fw-bold mb-3 small"><i class="fas fa-chart-line me-2 text-info"></i>YOUR PROGRESS</h6>
-            <canvas id="progressChart" height="180"></canvas>
-        </div>
-    </div>
-
-    <div id="game-view">
-        <div class="container py-3">
-            <div class="timer-circle" id="timer">--</div>
-            <div id="q-box">
-                <h5 id="q-text" class="mb-4 text-center fw-bold"></h5>
-                <div id="q-img-box" class="mb-4 text-center"></div>
-                <div id="options-box"></div>
+        <div id="login-screen" class="container" style="max-width: 400px;">
+            <div class="glass-card text-center shadow-lg">
+                <h5 class="fw-bold mb-4">Student Login</h5>
+                <input type="text" id="log_id" class="form-control mb-3 bg-dark text-white border-0 py-3 rounded-pill text-center" placeholder="ID Number">
+                <input type="password" id="log_pass" class="form-control mb-4 bg-dark text-white border-0 py-3 rounded-pill text-center" placeholder="Password">
+                <button class="btn btn-primary w-100 py-3 rounded-pill fw-bold" onclick="handleLogin()">LOGIN</button>
             </div>
-            <button id="next-btn" class="btn btn-primary w-100 py-3 rounded-pill mt-4 fw-bold" onclick="nextQuestion()">NEXT QUESTION</button>
+        </div>
+
+        <div id="dashboard" class="container" style="display:none; max-width: 600px;">
+            <div class="glass-card">
+                <div class="sound-control" onclick="toggleSFX()"><i id="sfx-icon" class="fas fa-volume-up"></i></div>
+                <h5 class="fw-bold mb-1" id="greeting-text">Loading...</h5>
+                <p class="text-white-50 small mb-4" id="user-name">Student Name</p>
+                
+                <button class="booster-btn mb-4" onclick="initBooster()">START TODAY BOOSTER</button>
+                
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="small text-white-50">Global Activity:</span>
+                    <span class="stat-badge"><i class="fas fa-users me-1"></i> <span id="global-count">0</span> Played Today</span>
+                </div>
+            </div>
+
+            <div class="glass-card">
+                <h6 class="fw-bold mb-3 small text-uppercase"><i class="fas fa-chart-line me-2 text-info"></i>Weekly Progress</h6>
+                <canvas id="progressChart" height="180"></canvas>
+            </div>
+        </div>
+
+        <div id="game-view">
+            <div class="container py-3">
+                <div class="timer-circle" id="timer">--</div>
+                <div id="q-box">
+                    <h5 id="q-text" class="mb-4 text-center fw-bold"></h5>
+                    <div id="q-img-box" class="mb-4 text-center"></div>
+                    <div id="options-box"></div>
+                </div>
+                <button id="next-btn" class="btn btn-primary w-100 py-3 rounded-pill mt-4 fw-bold" onclick="nextQuestion()">NEXT QUESTION</button>
+            </div>
+        </div>
+
+        <div id="result-screen" class="container py-5 text-center" style="display:none;">
+            <div class="glass-card py-5">
+                <h2 class="text-accent fw-bold mb-3">BOOSTER COMPLETED!</h2>
+                <p id="result-msg" class="mb-4 px-3"></p>
+                <a id="result-url" href="#" target="_blank" class="btn btn-success btn-lg rounded-pill px-5 fw-bold mb-3 shadow">Watch Video Explanation</a>
+                <br>
+                <button class="btn btn-link text-white-50 text-decoration-none mt-3" onclick="location.reload()">Return to Dashboard</button>
+            </div>
         </div>
     </div>
 
-    <div id="result-screen" class="container py-5 text-center" style="display:none;">
-        <div class="glass-card py-5">
-            <h2 class="text-accent fw-bold mb-3">EXCELLENT!</h2>
-            <p id="result-msg" class="mb-4 px-3"></p>
-            <a id="result-url" href="#" target="_blank" class="btn btn-success btn-lg rounded-pill px-5 fw-bold mb-3">Watch Video</a>
-            <br>
-            <button class="btn btn-outline-light rounded-pill px-4 btn-sm" onclick="location.reload()">Back to Dashboard</button>
+    <footer class="text-center py-4 mt-auto">
+        <div class="container">
+            <p class="mb-1 text-white-50 small" style="font-size: 0.65rem;">Developed & Powered by</p>
+            <h6 class="fw-bold mb-0" style="color: var(--accent); opacity: 0.8; font-size: 0.9rem;">
+                NUDARA APPLICATIONS
+            </h6>
+            <small class="text-white-50" style="font-size: 0.6rem;">© 2025 All Rights Reserved</small>
         </div>
-    </div>
+    </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script type="module">
@@ -113,27 +131,39 @@
         const db = getDatabase(app);
         let sfxEnabled = true;
 
-        // 1. Time-based Greeting
-        function updateGreeting() {
-            const hr = new Date().getHours();
-            let msg = hr < 12 ? "Good Morning! ☀️" : hr < 18 ? "Good Afternoon! ☕" : "Good Evening! 🌙";
+        // Greeting Logic
+        function setGreeting() {
+            const hour = new Date().getHours();
+            let msg = hour < 12 ? "Good Morning! ☀️" : hour < 18 ? "Good Afternoon! ☕" : "Good Evening! 🌙";
             document.getElementById('greeting-text').innerText = msg;
         }
 
-        // 2. Sound Control
+        // Sound Logic
         window.toggleSFX = () => {
             sfxEnabled = !sfxEnabled;
             document.getElementById('sfx-icon').className = sfxEnabled ? "fas fa-volume-up" : "fas fa-volume-mute";
         };
 
-        function playSound(type) {
+        function playSound(isCorrect) {
             if(!sfxEnabled) return;
-            document.getElementById(type === 'correct' ? 'snd-correct' : 'snd-wrong').play();
+            const aud = document.getElementById(isCorrect ? 'snd-correct' : 'snd-wrong');
+            aud.currentTime = 0;
+            aud.play();
+        }
+
+        // Global Stats Logic
+        function syncGlobalStats() {
+            const today = new Date().toISOString().split('T')[0];
+            onValue(ref(db, `results/${today}`), (snap) => {
+                document.getElementById('global-count').innerText = snap.exists() ? Object.keys(snap.val()).length : 0;
+            });
         }
 
         window.handleLogin = async function() {
             const id = document.getElementById('log_id').value.trim();
             const pass = document.getElementById('log_pass').value.trim();
+            if(!id || !pass) return alert("Please fill all fields");
+            
             const snap = await get(ref(db, `students/${id}`));
             if(snap.exists() && snap.val().password === pass){
                 localStorage.setItem('mb_session', JSON.stringify({user: snap.val(), id: id}));
@@ -146,21 +176,12 @@
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('dashboard').style.display = 'block';
             document.getElementById('user-name').innerText = session.user.name;
-            updateGreeting();
-            loadGlobalStats();
+            setGreeting();
+            syncGlobalStats();
             loadProgressChart();
         }
 
-        // 3. Global Statistics (Live Count)
-        function loadGlobalStats() {
-            const today = new Date().toISOString().split('T')[0];
-            onValue(ref(db, `results/${today}`), (snap) => {
-                const count = snap.exists() ? Object.keys(snap.val()).length : 0;
-                document.getElementById('global-count').innerText = count;
-            });
-        }
-
-        // --- Game Logic ---
+        // --- Core Quiz Logic ---
         let currentPack, qKeys, currentQIndex = 0, userAnswers = [], selectedAns = null, timerInterval;
 
         window.initBooster = async function() {
@@ -179,43 +200,69 @@
             selectedAns = null;
             const q = currentPack.questions[qKeys[currentQIndex]];
             document.getElementById('q-text').innerText = q.text;
-            document.getElementById('q-img-box').innerHTML = q.img ? `<img src="${q.img}" class="img-fluid rounded-4 mb-3">` : "";
-            const box = document.getElementById('options-box'); box.innerHTML = "";
-            q.options.forEach((opt, i) => { if(opt) box.innerHTML += `<button class="option-btn" onclick="sel(${i+1}, ${q.correct})">${opt}</button>`; });
+            document.getElementById('q-img-box').innerHTML = q.img ? `<img src="${q.img}" class="img-fluid rounded-4 mb-3" style="max-height:250px">` : "";
+            
+            const box = document.getElementById('options-box'); 
+            box.innerHTML = "";
+            q.options.forEach((opt, i) => { 
+                if(opt) box.innerHTML += `<button class="option-btn" onclick="sel(${i+1}, ${q.correct})">${opt}</button>`; 
+            });
             startTimer(60);
         }
 
         window.sel = (i, corr) => {
-            selectedAns = { isCorr: (i == corr) };
-            if(selectedAns.isCorr) playSound('correct'); else playSound('wrong');
+            const isCorrect = (i == corr);
+            selectedAns = { isCorr: isCorrect };
+            playSound(isCorrect);
             document.querySelectorAll('.option-btn').forEach((b, idx) => b.classList.toggle('selected', (idx+1)==i));
         };
 
         window.nextQuestion = () => {
             if(!selectedAns) return alert("Please select an answer!");
             userAnswers.push(selectedAns.isCorr);
-            currentQIndex++; clearInterval(timerInterval); loadQuestion();
+            currentQIndex++; 
+            clearInterval(timerInterval); 
+            loadQuestion();
         };
 
         function startTimer(s) {
-            let t = s; document.getElementById('timer').innerText = t;
+            let t = s; 
+            const timerEl = document.getElementById('timer');
+            timerEl.innerText = t;
+            timerEl.style.color = "var(--accent)";
+            timerEl.style.borderColor = "var(--accent)";
+
             timerInterval = setInterval(() => { 
-                t--; document.getElementById('timer').innerText = t; 
-                if(t <= 5) document.getElementById('timer').style.color = "red";
-                if(t<=0){ clearInterval(timerInterval); nextQuestion(); }
+                t--; 
+                timerEl.innerText = t; 
+                if(t <= 10) {
+                    timerEl.style.color = "#ff4444";
+                    timerEl.style.borderColor = "#ff4444";
+                }
+                if(t <= 0){ 
+                    clearInterval(timerInterval); 
+                    if(!selectedAns) userAnswers.push(false);
+                    nextQuestion(); 
+                }
             }, 1000);
         }
 
         async function finishGame() {
             document.getElementById('game-view').style.display = 'none';
             document.getElementById('result-screen').style.display = 'block';
+            
+            const score = userAnswers.filter(x => x).length * 10;
+            const today = new Date().toISOString().split('T')[0];
+            
+            // Logic to determine result pattern
             const a = userAnswers;
             let p = (a[0]&&!a[1]&&!a[2])?"p1":(!a[0]&&a[1]&&!a[2])?"p2":(!a[0]&&!a[1]&&a[2])?"p3":(a[0]&&a[1]&&!a[2])?"p4":(a[0]&&!a[1]&&a[2])?"p5":(!a[0]&&a[1]&&a[2])?"p6":(a[0]&&a[1]&&a[2])?"p7":"p8";
-            const score = a.filter(x => x).length * 10;
-            const today = new Date().toISOString().split('T')[0];
+            
             await set(ref(db, `results/${today}/${session.id}`), { name: session.user.name, score });
-            document.getElementById('result-msg').innerText = currentPack.patterns[p].msg;
-            document.getElementById('result-url').href = currentPack.patterns[p].url;
+            
+            const resData = currentPack.patterns[p];
+            document.getElementById('result-msg').innerText = resData.msg;
+            document.getElementById('result-url').href = resData.url;
         }
 
         async function loadProgressChart() {
@@ -223,10 +270,28 @@
             if(!snap.exists()) return;
             const dates = Object.keys(snap.val()).sort().slice(-7);
             const scores = dates.map(d => snap.val()[d][session.id]?.score || 0);
+            
             new Chart(document.getElementById('progressChart'), {
                 type: 'line',
-                data: { labels: dates, datasets: [{ label: 'Score', data: scores, borderColor: '#00d2ff', tension: 0.4, fill: true, backgroundColor: 'rgba(0,210,255,0.05)' }] },
-                options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, max: 35, ticks: { color: '#888' } }, x: { ticks: { color: '#888' } } } }
+                data: { 
+                    labels: dates, 
+                    datasets: [{ 
+                        label: 'Points', 
+                        data: scores, 
+                        borderColor: '#00d2ff', 
+                        backgroundColor: 'rgba(0, 210, 255, 0.1)',
+                        tension: 0.4, 
+                        fill: true,
+                        pointRadius: 4
+                    }] 
+                },
+                options: { 
+                    plugins: { legend: { display: false } },
+                    scales: { 
+                        y: { beginAtZero: true, max: 35, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#666' } },
+                        x: { grid: { display: false }, ticks: { color: '#666' } }
+                    }
+                }
             });
         }
     </script>
