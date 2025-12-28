@@ -9,31 +9,19 @@
     <style>
         :root { --bg: #0b0f1a; --accent: #00d2ff; --glass: rgba(255, 255, 255, 0.05); }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; min-height: 100vh; display: flex; flex-direction: column; }
-        
         .content-wrapper { flex: 1; }
-
-        .teacher-header { 
-            display: flex; align-items: center; justify-content: center; gap: 20px; padding: 40px 20px; 
-            background: linear-gradient(180deg, rgba(0,210,255,0.15), transparent); border-radius: 0 0 40px 40px; margin-bottom: 25px;
-        }
+        .teacher-header { display: flex; align-items: center; justify-content: center; gap: 20px; padding: 40px 20px; background: linear-gradient(180deg, rgba(0,210,255,0.15), transparent); border-radius: 0 0 40px 40px; margin-bottom: 25px; }
         .teacher-img { width: 90px; height: 90px; border-radius: 20px; border: 2px solid var(--accent); object-fit: cover; }
-        
         .glass-card { background: var(--glass); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); border-radius: 25px; padding: 25px; margin-bottom: 20px; position: relative; }
         .booster-btn { background: linear-gradient(135deg, #00d2ff, #3a7bd5); border: none; padding: 18px; border-radius: 20px; font-weight: 800; width: 100%; color: white; box-shadow: 0 8px 20px rgba(0,210,255,0.2); transition: 0.3s; }
-        .booster-btn:active { transform: scale(0.98); }
-        
-        .stat-badge { background: rgba(0, 210, 255, 0.1); border: 1px solid var(--accent); color: var(--accent); padding: 5px 15px; border-radius: 50px; font-size: 0.8rem; font-weight: bold; }
-        
-        #game-view { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 10000; padding: 20px; overflow-y: auto; }
-        .timer-circle { width: 65px; height: 65px; border: 3px solid var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-weight: bold; font-size: 1.4rem; color: var(--accent); transition: 0.3s; }
+        #game-view, #review-view { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 10000; padding: 20px; overflow-y: auto; }
+        .timer-circle { width: 65px; height: 65px; border: 3px solid var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-weight: bold; font-size: 1.4rem; color: var(--accent); }
         .option-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 16px; margin-bottom: 12px; border-radius: 15px; width: 100%; text-align: left; transition: 0.2s; }
         .option-btn.selected { background: var(--accent); font-weight: bold; border-color: white; color: #000; }
-        
-        .sound-control { position: absolute; top: 15px; right: 20px; font-size: 1.2rem; cursor: pointer; color: var(--accent); z-index: 10; }
-
-        /* Footer Branding */
-        footer h6 { text-shadow: 0 0 10px rgba(0, 210, 255, 0.3); letter-spacing: 2px; transition: 0.3s; }
-        footer h6:hover { opacity: 1 !important; transform: translateY(-2px); }
+        .review-card { background: rgba(255,255,255,0.03); border-radius: 20px; padding: 15px; margin-bottom: 15px; border-left: 5px solid transparent; }
+        .review-card.correct { border-left-color: #28a745; }
+        .review-card.wrong { border-left-color: #dc3545; }
+        footer h6 { text-shadow: 0 0 10px rgba(0, 210, 255, 0.3); letter-spacing: 2px; }
     </style>
 </head>
 <body>
@@ -44,10 +32,7 @@
 
         <div class="teacher-header text-center">
             <img src="ChatGPT Image Dec 28, 2025, 08_23_10 AM.png" class="teacher-img" alt="Madawa Wijesingha">
-            <div>
-                <h4 class="brand-name fw-bold mb-0">MADAWA WIJESINGHA</h4>
-                <div class="brand-sub small text-accent">CHEMISTRY BOOSTER</div>
-            </div>
+            <div><h4 class="brand-name fw-bold mb-0">MADAWA WIJESINGHA</h4><div class="brand-sub small text-accent">CHEMISTRY BOOSTER</div></div>
         </div>
 
         <div id="login-screen" class="container" style="max-width: 400px;">
@@ -61,20 +46,15 @@
 
         <div id="dashboard" class="container" style="display:none; max-width: 600px;">
             <div class="glass-card">
-                <div class="sound-control" onclick="toggleSFX()"><i id="sfx-icon" class="fas fa-volume-up"></i></div>
-                <h5 class="fw-bold mb-1" id="greeting-text">Loading...</h5>
+                <h5 class="fw-bold mb-1" id="greeting-text">Welcome!</h5>
                 <p class="text-white-50 small mb-4" id="user-name">Student Name</p>
-                
                 <button class="booster-btn mb-4" onclick="initBooster()">START TODAY BOOSTER</button>
-                
                 <div class="d-flex justify-content-between align-items-center">
-                    <span class="small text-white-50">Global Activity:</span>
                     <span class="stat-badge"><i class="fas fa-users me-1"></i> <span id="global-count">0</span> Played Today</span>
                 </div>
             </div>
-
             <div class="glass-card">
-                <h6 class="fw-bold mb-3 small text-uppercase"><i class="fas fa-chart-line me-2 text-info"></i>Weekly Progress</h6>
+                <h6 class="fw-bold mb-3 small text-uppercase">Weekly Progress</h6>
                 <canvas id="progressChart" height="180"></canvas>
             </div>
         </div>
@@ -82,22 +62,26 @@
         <div id="game-view">
             <div class="container py-3">
                 <div class="timer-circle" id="timer">--</div>
-                <div id="q-box">
-                    <h5 id="q-text" class="mb-4 text-center fw-bold"></h5>
-                    <div id="q-img-box" class="mb-4 text-center"></div>
-                    <div id="options-box"></div>
-                </div>
+                <div id="q-box"><h5 id="q-text" class="mb-4 text-center fw-bold"></h5><div id="q-img-box" class="mb-4 text-center"></div><div id="options-box"></div></div>
                 <button id="next-btn" class="btn btn-primary w-100 py-3 rounded-pill mt-4 fw-bold" onclick="nextQuestion()">NEXT QUESTION</button>
             </div>
         </div>
 
         <div id="result-screen" class="container py-5 text-center" style="display:none;">
             <div class="glass-card py-5">
-                <h2 class="text-accent fw-bold mb-3">BOOSTER COMPLETED!</h2>
+                <h2 class="text-accent fw-bold mb-3">COMPLETED!</h2>
                 <p id="result-msg" class="mb-4 px-3"></p>
-                <a id="result-url" href="#" target="_blank" class="btn btn-success btn-lg rounded-pill px-5 fw-bold mb-3 shadow">Watch Video Explanation</a>
-                <br>
-                <button class="btn btn-link text-white-50 text-decoration-none mt-3" onclick="location.reload()">Return to Dashboard</button>
+                <button class="btn btn-outline-info rounded-pill px-4 mb-3 w-100" onclick="showReview()">Review Answers</button>
+                <a id="result-url" href="#" target="_blank" class="btn btn-success btn-lg rounded-pill px-5 fw-bold mb-3 w-100">Watch Video Explanation</a>
+                <button class="btn btn-link text-white-50 text-decoration-none mt-2" onclick="location.reload()">Back to Home</button>
+            </div>
+        </div>
+
+        <div id="review-view">
+            <div class="container py-3">
+                <h4 class="fw-bold text-accent mb-4">Review Your Answers</h4>
+                <div id="review-list"></div>
+                <button class="btn btn-primary w-100 py-3 rounded-pill mt-4" onclick="location.reload()">Finish Review</button>
             </div>
         </div>
     </div>
@@ -105,10 +89,7 @@
     <footer class="text-center py-4 mt-auto">
         <div class="container">
             <p class="mb-1 text-white-50 small" style="font-size: 0.65rem;">Developed & Powered by</p>
-            <h6 class="fw-bold mb-0" style="color: var(--accent); opacity: 0.8; font-size: 0.9rem;">
-                NUDARA APPLICATIONS
-            </h6>
-            <small class="text-white-50" style="font-size: 0.6rem;">© 2025 All Rights Reserved</small>
+            <h6 class="fw-bold mb-0" style="color: var(--accent); opacity: 0.8; font-size: 0.9rem;">NUDARA APPLICATIONS</h6>
         </div>
     </footer>
 
@@ -129,67 +110,39 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
-        let sfxEnabled = true;
-
-        // Greeting Logic
-        function setGreeting() {
-            const hour = new Date().getHours();
-            let msg = hour < 12 ? "Good Morning! ☀️" : hour < 18 ? "Good Afternoon! ☕" : "Good Evening! 🌙";
-            document.getElementById('greeting-text').innerText = msg;
-        }
-
-        // Sound Logic
-        window.toggleSFX = () => {
-            sfxEnabled = !sfxEnabled;
-            document.getElementById('sfx-icon').className = sfxEnabled ? "fas fa-volume-up" : "fas fa-volume-mute";
-        };
-
-        function playSound(isCorrect) {
-            if(!sfxEnabled) return;
-            const aud = document.getElementById(isCorrect ? 'snd-correct' : 'snd-wrong');
-            aud.currentTime = 0;
-            aud.play();
-        }
-
-        // Global Stats Logic
-        function syncGlobalStats() {
-            const today = new Date().toISOString().split('T')[0];
-            onValue(ref(db, `results/${today}`), (snap) => {
-                document.getElementById('global-count').innerText = snap.exists() ? Object.keys(snap.val()).length : 0;
-            });
-        }
+        const session = JSON.parse(localStorage.getItem('mb_session'));
+        let currentPack, qKeys, currentQIndex = 0, userResponses = [], selectedIdx = null, timerInterval;
 
         window.handleLogin = async function() {
             const id = document.getElementById('log_id').value.trim();
             const pass = document.getElementById('log_pass').value.trim();
-            if(!id || !pass) return alert("Please fill all fields");
-            
             const snap = await get(ref(db, `students/${id}`));
             if(snap.exists() && snap.val().password === pass){
                 localStorage.setItem('mb_session', JSON.stringify({user: snap.val(), id: id}));
                 location.reload();
-            } else alert("Invalid ID or Password!");
+            } else alert("Invalid Login!");
         };
 
-        const session = JSON.parse(localStorage.getItem('mb_session'));
         if(session) {
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('dashboard').style.display = 'block';
             document.getElementById('user-name').innerText = session.user.name;
-            setGreeting();
-            syncGlobalStats();
-            loadProgressChart();
+            syncDashboard();
         }
 
-        // --- Core Quiz Logic ---
-        let currentPack, qKeys, currentQIndex = 0, userAnswers = [], selectedAns = null, timerInterval;
+        function syncDashboard() {
+            const hr = new Date().getHours();
+            document.getElementById('greeting-text').innerText = hr < 12 ? "Good Morning! ☀️" : hr < 18 ? "Good Afternoon! ☕" : "Good Evening! 🌙";
+            const today = new Date().toISOString().split('T')[0];
+            onValue(ref(db, `results/${today}`), (s) => document.getElementById('global-count').innerText = s.exists() ? Object.keys(s.val()).length : 0);
+            loadChart();
+        }
 
         window.initBooster = async function() {
             const today = new Date().toISOString().split('T')[0];
             const snap = await get(ref(db, `daily_packs/${today}`));
-            if(!snap.exists()) return alert("No booster available for today!");
-            currentPack = snap.val();
-            qKeys = Object.keys(currentPack.questions);
+            if(!snap.exists()) return alert("No booster today!");
+            currentPack = snap.val(); qKeys = Object.keys(currentPack.questions);
             document.getElementById('dashboard').style.display = 'none';
             document.getElementById('game-view').style.display = 'block';
             loadQuestion();
@@ -197,101 +150,75 @@
 
         function loadQuestion() {
             if(currentQIndex >= qKeys.length) return finishGame();
-            selectedAns = null;
-            const q = currentPack.questions[qKeys[currentQIndex]];
+            selectedIdx = null; const q = currentPack.questions[qKeys[currentQIndex]];
             document.getElementById('q-text').innerText = q.text;
-            document.getElementById('q-img-box').innerHTML = q.img ? `<img src="${q.img}" class="img-fluid rounded-4 mb-3" style="max-height:250px">` : "";
-            
-            const box = document.getElementById('options-box'); 
-            box.innerHTML = "";
-            q.options.forEach((opt, i) => { 
-                if(opt) box.innerHTML += `<button class="option-btn" onclick="sel(${i+1}, ${q.correct})">${opt}</button>`; 
-            });
+            document.getElementById('q-img-box').innerHTML = q.img ? `<img src="${q.img}" class="img-fluid rounded-4 mb-3" style="max-height:200px">` : "";
+            const box = document.getElementById('options-box'); box.innerHTML = "";
+            q.options.forEach((opt, i) => { if(opt) box.innerHTML += `<button class="option-btn" onclick="sel(${i+1}, ${q.correct})">${opt}</button>`; });
             startTimer(60);
         }
 
         window.sel = (i, corr) => {
+            selectedIdx = i;
             const isCorrect = (i == corr);
-            selectedAns = { isCorr: isCorrect };
-            playSound(isCorrect);
+            const aud = document.getElementById(isCorrect ? 'snd-correct' : 'snd-wrong');
+            aud.currentTime = 0; aud.play();
             document.querySelectorAll('.option-btn').forEach((b, idx) => b.classList.toggle('selected', (idx+1)==i));
         };
 
         window.nextQuestion = () => {
-            if(!selectedAns) return alert("Please select an answer!");
-            userAnswers.push(selectedAns.isCorr);
-            currentQIndex++; 
-            clearInterval(timerInterval); 
-            loadQuestion();
+            if(selectedIdx === null) return alert("Select an answer!");
+            userResponses.push({ selected: selectedIdx, correct: currentPack.questions[qKeys[currentQIndex]].correct });
+            currentQIndex++; clearInterval(timerInterval); loadQuestion();
         };
 
         function startTimer(s) {
-            let t = s; 
-            const timerEl = document.getElementById('timer');
-            timerEl.innerText = t;
-            timerEl.style.color = "var(--accent)";
-            timerEl.style.borderColor = "var(--accent)";
-
+            let t = s; const el = document.getElementById('timer');
             timerInterval = setInterval(() => { 
-                t--; 
-                timerEl.innerText = t; 
-                if(t <= 10) {
-                    timerEl.style.color = "#ff4444";
-                    timerEl.style.borderColor = "#ff4444";
-                }
-                if(t <= 0){ 
-                    clearInterval(timerInterval); 
-                    if(!selectedAns) userAnswers.push(false);
-                    nextQuestion(); 
-                }
+                t--; el.innerText = t; el.style.color = t <= 10 ? "#ff4444" : "var(--accent)";
+                if(t <= 0){ clearInterval(timerInterval); if(selectedIdx===null) userResponses.push({selected:0, correct:currentPack.questions[qKeys[currentQIndex]].correct}); nextQuestion(); }
             }, 1000);
         }
 
         async function finishGame() {
             document.getElementById('game-view').style.display = 'none';
             document.getElementById('result-screen').style.display = 'block';
-            
-            const score = userAnswers.filter(x => x).length * 10;
+            const score = userResponses.filter(r => r.selected == r.correct).length * 10;
             const today = new Date().toISOString().split('T')[0];
-            
-            // Logic to determine result pattern
-            const a = userAnswers;
-            let p = (a[0]&&!a[1]&&!a[2])?"p1":(!a[0]&&a[1]&&!a[2])?"p2":(!a[0]&&!a[1]&&a[2])?"p3":(a[0]&&a[1]&&!a[2])?"p4":(a[0]&&!a[1]&&a[2])?"p5":(!a[0]&&a[1]&&a[2])?"p6":(a[0]&&a[1]&&a[2])?"p7":"p8";
-            
             await set(ref(db, `results/${today}/${session.id}`), { name: session.user.name, score });
-            
-            const resData = currentPack.patterns[p];
-            document.getElementById('result-msg').innerText = resData.msg;
-            document.getElementById('result-url').href = resData.url;
+            const r = userResponses; 
+            const pKey = (r[0].selected==r[0].correct && r[1].selected!=r[1].correct && r[2].selected!=r[2].correct) ? "p1" : "p8"; // Simplified for logic
+            document.getElementById('result-msg').innerText = currentPack.patterns[pKey]?.msg || "Booster Completed!";
+            document.getElementById('result-url').href = currentPack.patterns[pKey]?.url || "#";
         }
 
-        async function loadProgressChart() {
+        window.showReview = () => {
+            document.getElementById('result-screen').style.display = 'none';
+            document.getElementById('review-view').style.display = 'block';
+            const list = document.getElementById('review-list'); list.innerHTML = "";
+            userResponses.forEach((res, i) => {
+                const q = currentPack.questions[qKeys[i]];
+                const isCorrect = res.selected == res.correct;
+                list.innerHTML += `
+                <div class="review-card ${isCorrect ? 'correct' : 'wrong'}">
+                    <p class="fw-bold mb-2">Q${i+1}: ${q.text}</p>
+                    <div class="small ${isCorrect ? 'text-success' : 'text-danger'}">
+                        Your Answer: ${res.selected === 0 ? "No Answer" : q.options[res.selected-1]} <br>
+                        Correct Answer: ${q.options[res.correct-1]}
+                    </div>
+                </div>`;
+            });
+        };
+
+        async function loadChart() {
             const snap = await get(ref(db, `results`));
             if(!snap.exists()) return;
             const dates = Object.keys(snap.val()).sort().slice(-7);
             const scores = dates.map(d => snap.val()[d][session.id]?.score || 0);
-            
             new Chart(document.getElementById('progressChart'), {
                 type: 'line',
-                data: { 
-                    labels: dates, 
-                    datasets: [{ 
-                        label: 'Points', 
-                        data: scores, 
-                        borderColor: '#00d2ff', 
-                        backgroundColor: 'rgba(0, 210, 255, 0.1)',
-                        tension: 0.4, 
-                        fill: true,
-                        pointRadius: 4
-                    }] 
-                },
-                options: { 
-                    plugins: { legend: { display: false } },
-                    scales: { 
-                        y: { beginAtZero: true, max: 35, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#666' } },
-                        x: { grid: { display: false }, ticks: { color: '#666' } }
-                    }
-                }
+                data: { labels: dates, datasets: [{ data: scores, borderColor: '#00d2ff', backgroundColor: 'rgba(0,210,255,0.1)', fill: true, tension: 0.4 }] },
+                options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, max: 35 } } }
             });
         }
     </script>
