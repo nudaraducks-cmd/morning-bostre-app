@@ -9,17 +9,18 @@
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <style>
         :root { --bg: #0b0f1a; --accent: #00d2ff; --glass: rgba(255, 255, 255, 0.05); }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; min-height: 100vh; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; min-height: 100vh; overflow-x: hidden; }
         .teacher-header { display: flex; align-items: center; justify-content: center; gap: 20px; padding: 40px 20px; background: linear-gradient(180deg, rgba(0,210,255,0.15), transparent); border-radius: 0 0 40px 40px; margin-bottom: 25px; }
         .teacher-img { width: 90px; height: 90px; border-radius: 20px; border: 2px solid var(--accent); object-fit: cover; }
-        .version-tag { font-size: 0.65rem; color: rgba(255,255,255,0.3); letter-spacing: 1px; margin-top: 5px; font-weight: bold; }
-        .glass-card { background: var(--glass); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); border-radius: 25px; padding: 25px; margin-bottom: 20px; }
+        .version-tag { font-size: 0.65rem; color: rgba(255,255,255,0.3); letter-spacing: 1px; margin-top: 5px; font-weight: bold; text-transform: uppercase; }
+        .glass-card { background: var(--glass); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); border-radius: 25px; padding: 25px; margin-bottom: 20px; transition: 0.3s; }
         .booster-btn { background: linear-gradient(135deg, #00d2ff, #3a7bd5); border: none; padding: 18px; border-radius: 20px; font-weight: 800; width: 100%; color: white; box-shadow: 0 8px 20px rgba(0,210,255,0.2); transition: 0.3s; }
         .booster-btn:disabled { background: #444 !important; opacity: 0.7; cursor: not-allowed; box-shadow: none; }
         #game-view, #review-view { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 10000; padding: 20px; overflow-y: auto; }
         .timer-circle { width: 65px; height: 65px; border: 3px solid var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-weight: bold; font-size: 1.4rem; color: var(--accent); }
-        .option-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 16px; margin-bottom: 12px; border-radius: 15px; width: 100%; text-align: left; }
-        .option-btn.selected { background: var(--accent); color: #000; font-weight: bold; }
+        .option-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 16px; margin-bottom: 12px; border-radius: 15px; width: 100%; text-align: left; transition: 0.2s; }
+        .option-btn.selected { background: var(--accent); color: #000; font-weight: bold; border-color: var(--accent); }
+        .text-accent { color: var(--accent); }
     </style>
 </head>
 <body>
@@ -29,7 +30,7 @@
         <audio id="snd-wrong" src="https://cdn.pixabay.com/audio/2022/03/10/audio_c030d35967.mp3"></audio>
 
         <div class="teacher-header text-center">
-            <img src="ChatGPT Image Dec 28, 2025, 08_23_10 AM.png" class="teacher-img">
+            <img src="ChatGPT Image Dec 28, 2025, 08_23_10 AM.png" class="teacher-img" onerror="this.src='https://via.placeholder.com/90'">
             <div>
                 <h4 class="fw-bold mb-0">MADAWA WIJESINGHA</h4>
                 <div class="small text-accent">CHEMISTRY BOOSTER</div>
@@ -51,13 +52,16 @@
                 <h5 class="fw-bold mb-1" id="greeting-text">...</h5>
                 <p id="user-display-name" class="text-white-50 small mb-4"></p>
                 <div class="d-flex justify-content-between mb-3 small text-white-50">
-                    <span><i class="fas fa-fire me-1"></i> Streak</span>
-                    <span><i class="fas fa-users me-1"></i> <span id="global-count">0</span> Active</span>
+                    <span><i class="fas fa-fire me-1 text-danger"></i> Streak</span>
+                    <span><i class="fas fa-users me-1 text-accent"></i> <span id="global-count">0</span> Active</span>
                 </div>
-                <button id="start-btn" class="booster-btn mb-4" onclick="initBooster()">START TODAY BOOSTER</button>
+                <button id="start-btn" class="booster-btn mb-3" onclick="initBooster()">START TODAY BOOSTER</button>
                 <p id="status-msg" class="text-warning small fw-bold d-none"></p>
             </div>
-            <div class="glass-card"><canvas id="progressChart" height="180"></canvas></div>
+            <div class="glass-card">
+                <h6 class="small mb-3 text-white-50 text-center">Performance Tracking</h6>
+                <canvas id="progressChart" height="180"></canvas>
+            </div>
         </div>
 
         <div id="game-view">
@@ -82,7 +86,7 @@
             <div class="container py-3">
                 <h4 class="fw-bold text-accent mb-4">Review Answers</h4>
                 <div id="review-list"></div>
-                <button class="btn btn-primary w-100 py-3 rounded-pill mt-4" onclick="location.reload()">Close</button>
+                <button class="btn btn-primary w-100 py-3 rounded-pill mt-4" onclick="location.reload()">Return to Home</button>
             </div>
         </div>
     </div>
@@ -102,11 +106,12 @@
         window.handleLogin = async () => {
             const id = document.getElementById('log_id').value.trim();
             const pass = document.getElementById('log_pass').value.trim();
+            if(!id || !pass) return alert("Please fill login details.");
             const snap = await get(ref(db, `students/${id}`));
             if(snap.exists() && snap.val().password === pass){
                 localStorage.setItem('mb_session', JSON.stringify({user: snap.val(), id: id}));
                 location.reload();
-            } else alert("Invalid Login!");
+            } else alert("Invalid ID or Password!");
         };
 
         if(session) {
@@ -117,40 +122,44 @@
             syncUI();
         }
 
-        // --- FIXED BOOSTER LISTENER ---
+        // --- REAL-TIME DATA SYNCING LOGIC ---
         function listenForBooster() {
-            onValue(ref(db, `daily_packs/${todayStr}`), (snapshot) => {
-                const startBtn = document.getElementById('start-btn');
-                const statusMsg = document.getElementById('status-msg');
+            // Listen to student's specific result for TODAY
+            onValue(ref(db, `results/${todayStr}/${session.id}`), (scoreSnap) => {
+                const hasScoreInDB = scoreSnap.exists();
                 
-                if (!snapshot.exists()) {
-                    // Admin දත්ත මැකුවොත් Browser එකේ පරණ මතකයත් අයින් කරනවා
-                    localStorage.removeItem(`done_${session.id}`);
-                    startBtn.disabled = true;
-                    startBtn.innerText = "NO BOOSTER TODAY";
-                    statusMsg.innerText = "Admin is updating the booster...";
-                    statusMsg.classList.remove('d-none');
-                    currentPack = null;
-                } else {
-                    currentPack = snapshot.val();
-                    qKeys = Object.keys(currentPack.questions);
-
-                    // Real-time එකේ බලනවා ශිෂ්‍යයා Firebase එකේ ලකුණු අරන්ද කියලා
-                    onValue(ref(db, `results/${todayStr}/${session.id}`), (scoreSnap) => {
-                        if (scoreSnap.exists()) {
+                // Listen to the daily pack
+                onValue(ref(db, `daily_packs/${todayStr}`), (snapshot) => {
+                    const startBtn = document.getElementById('start-btn');
+                    const statusMsg = document.getElementById('status-msg');
+                    
+                    if (!snapshot.exists()) {
+                        // Admin deleted the pack
+                        startBtn.disabled = true;
+                        startBtn.innerText = "BOOSTER UPDATING...";
+                        statusMsg.innerText = "Please wait until the teacher uploads a new booster.";
+                        statusMsg.classList.remove('d-none');
+                        currentPack = null;
+                        // Important: When admin deletes the pack, we allow new attempts by clearing local state
+                        localStorage.removeItem(`done_${session.id}`);
+                    } else {
+                        currentPack = snapshot.val();
+                        qKeys = Object.keys(currentPack.questions);
+                        
+                        // If score was ALSO deleted (by admin), then hasScoreInDB will be false
+                        if (hasScoreInDB) {
                             startBtn.disabled = true;
-                            startBtn.innerText = "DONE FOR TODAY ✅";
-                            statusMsg.innerText = "You have already completed this booster.";
+                            startBtn.innerText = "COMPLETED ✅";
+                            statusMsg.innerText = "You have already finished this session.";
                             statusMsg.classList.remove('d-none');
                         } else {
-                            // මෙතැනදී Local Storage එකත් Clear කරනවා ආයෙත් කරන්න ඉඩ දීමට
-                            localStorage.removeItem(`done_${session.id}`);
+                            // Pack exists but no score -> Allow Start
                             startBtn.disabled = false;
                             startBtn.innerText = "START TODAY BOOSTER";
                             statusMsg.classList.add('d-none');
                         }
-                    }, { onlyOnce: false });
-                }
+                    }
+                });
             });
         }
 
@@ -162,7 +171,7 @@
         }
 
         window.initBooster = () => {
-            if(!currentPack) return alert("Booster not ready!");
+            if(!currentPack) return alert("Booster is not available yet.");
             currentQIndex = 0; userResponses = [];
             document.getElementById('dashboard').style.display = 'none';
             document.getElementById('game-view').style.display = 'block';
@@ -186,7 +195,7 @@
         };
 
         window.nextQuestion = () => {
-            if(selectedIdx === null) return alert("Select an answer!");
+            if(selectedIdx === null) return alert("Please select an answer!");
             userResponses.push({ selected: selectedIdx, isCorrect: (selectedIdx == currentPack.questions[qKeys[currentQIndex]].correct) });
             currentQIndex++; clearInterval(timerInterval); loadQuestion();
         };
@@ -204,7 +213,9 @@
             const pKey = (a1?"R":"W")+(a2?"R":"W")+(a3?"R":"W");
             const patterns = {"RRR":"p7","RRW":"p4","RWR":"p5","RWW":"p1","WRR":"p6","WRW":"p2","WWR":"p3","WWW":"p8"};
             const score = userResponses.filter(res => res.isCorrect).length * 10;
+            
             await set(ref(db, `results/${todayStr}/${session.id}`), { name: session.user.name, score });
+            
             const resData = currentPack.patterns[patterns[pKey]];
             document.getElementById('result-msg').innerText = resData.msg;
             document.getElementById('result-url').href = resData.url;
