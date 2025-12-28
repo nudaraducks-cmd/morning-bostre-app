@@ -16,6 +16,7 @@
         .date-box { background: #ff7f50; color: white; padding: 5px 15px; border-radius: 10px; font-weight: bold; display: inline-block; margin-bottom: 10px; }
         .paper-id { background: #5ea1d7; color: white; padding: 5px 20px; border-radius: 10px; font-weight: bold; display: inline-block; }
         #editor-page, #view-page { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 10000; overflow-y: auto; padding: 20px; }
+        .q-card { background: #fff; border-radius: 15px; padding: 20px; margin-bottom: 20px; border: 1px solid #eee; }
     </style>
 </head>
 <body>
@@ -34,7 +35,7 @@
 </div>
 
 <div id="view-page">
-    <div class="container" style="max-width: 700px;">
+    <div class="container" style="max-width: 800px;">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h3 class="fw-bold text-secondary">View Paper Details</h3>
             <button class="btn-close" onclick="closeView()"></button>
@@ -45,10 +46,14 @@
 </div>
 
 <div id="editor-page">
-    <div class="container" style="max-width: 700px;">
+    <div class="container" style="max-width: 800px;">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h3 class="fw-bold text-primary">Create Today Paper</h3>
             <button class="btn-close" onclick="closeEditor()"></button>
+        </div>
+        <div class="mb-4">
+            <label class="fw-bold small">Music Link</label>
+            <input type="text" id="music_url" class="form-control" placeholder="SoundCloud Link">
         </div>
         <div id="questions-container"></div>
         <button class="btn btn-success btn-lg w-100 rounded-pill fw-bold py-3 mt-4" onclick="saveData()">PUBLISH NOW</button>
@@ -100,14 +105,21 @@
     window.viewPaper = async function(date) {
         const snap = await get(ref(db, `daily_packs/${date}`));
         const content = document.getElementById('view-content');
-        content.innerHTML = `<p class="fw-bold">Date: ${date}</p>`;
+        content.innerHTML = `<h5 class="fw-bold mb-4 text-center">Date: ${date}</h5>`;
         const questions = snap.val().questions;
         Object.keys(questions).forEach((qKey, i) => {
             const q = questions[qKey];
             content.innerHTML += `
-            <div class="card p-3 mb-2 bg-light border-0">
-                <p class="mb-1 fw-bold">${i+1}. ${q.text}</p>
-                <small class="text-success">Correct Answer: Option ${q.correct}</small>
+            <div class="q-card shadow-sm">
+                <p class="fw-bold mb-3">${i+1}. ${q.text}</p>
+                <ul class="list-group list-group-flush mb-2 small">
+                    <li class="list-group-item">1. ${q.options[0]}</li>
+                    <li class="list-group-item">2. ${q.options[1]}</li>
+                    <li class="list-group-item">3. ${q.options[2]}</li>
+                    <li class="list-group-item">4. ${q.options[3]}</li>
+                    <li class="list-group-item">5. ${q.options[4]}</li>
+                </ul>
+                <div class="badge bg-success">Correct Answer: Option ${q.correct}</div>
             </div>`;
         });
         document.getElementById('view-page').style.display = 'block';
@@ -117,7 +129,7 @@
 
     window.openEditor = async function() {
         const snap = await get(ref(db, `daily_packs/${todayStr}`));
-        if(snap.exists()) return alert("අද පේපර් එක මකලා ඉන්න.");
+        if(snap.exists()) return alert("Adadinata prashna dala thiyenne. Delete karala inna.");
         document.getElementById('editor-page').style.display = 'block';
         setupForm();
     };
@@ -129,34 +141,58 @@
         cont.innerHTML = "";
         for(let i=1; i<=3; i++) {
             cont.innerHTML += `
-            <div class="card p-4 border-0 shadow-sm rounded-4 mb-3">
+            <div class="q-card shadow-sm">
                 <h6 class="fw-bold text-primary mb-3">Question ${i}</h6>
-                <textarea id="q${i}_t" class="form-control mb-2"></textarea>
+                <textarea id="q${i}_t" class="form-control mb-2" placeholder="Question Text" rows="2"></textarea>
+                <input type="text" id="q${i}_i" class="form-control mb-3" placeholder="Image URL (Optional)">
                 <div class="row g-2">
-                    <div class="col-6"><input type="text" id="q${i}_o1" class="form-control" placeholder="Opt 1"></div>
-                    <div class="col-6"><input type="text" id="q${i}_o2" class="form-control" placeholder="Opt 2"></div>
+                    <div class="col-md-4"><input type="text" id="q${i}_o1" class="form-control form-control-sm mb-2" placeholder="Option 1"></div>
+                    <div class="col-md-4"><input type="text" id="q${i}_o2" class="form-control form-control-sm mb-2" placeholder="Option 2"></div>
+                    <div class="col-md-4"><input type="text" id="q${i}_o3" class="form-control form-control-sm mb-2" placeholder="Option 3"></div>
+                    <div class="col-md-6"><input type="text" id="q${i}_o4" class="form-control form-control-sm mb-2" placeholder="Option 4"></div>
+                    <div class="col-md-6"><input type="text" id="q${i}_o5" class="form-control form-control-sm mb-2" placeholder="Option 5"></div>
                 </div>
-                <select id="q${i}_c" class="form-select mt-2"><option value="1">Ans 1</option><option value="2">Ans 2</option></select>
+                <select id="q${i}_c" class="form-select mt-2 fw-bold text-success border-success">
+                    <option value="1">Correct Answer: 1</option>
+                    <option value="2">Correct Answer: 2</option>
+                    <option value="3">Correct Answer: 3</option>
+                    <option value="4">Correct Answer: 4</option>
+                    <option value="5">Correct Answer: 5</option>
+                </select>
             </div>`;
         }
     }
 
     window.saveData = async function() {
-        // ... (කලින් තිබූ saveData logic එකමයි)
-        const pack = { questions: {} };
+        const pack = {
+            music_url: document.getElementById('music_url').value,
+            questions: {},
+            patterns: { p1:{msg:"Completed!",url:"#"}, p2:{msg:"Completed!",url:"#"}, p3:{msg:"Completed!",url:"#"}, p4:{msg:"Completed!",url:"#"}, p5:{msg:"Completed!",url:"#"}, p6:{msg:"Completed!",url:"#"}, p7:{msg:"Completed!",url:"#"}, p8:{msg:"Completed!",url:"#"} }
+        };
         for(let i=1; i<=3; i++) {
             pack.questions[`q${i}`] = {
                 text: document.getElementById(`q${i}_t`).value,
-                options: [document.getElementById(`q${i}_o1`).value, document.getElementById(`q${i}_o2`).value],
+                img: document.getElementById(`q${i}_i`).value,
+                options: [
+                    document.getElementById(`q${i}_o1`).value,
+                    document.getElementById(`q${i}_o2`).value,
+                    document.getElementById(`q${i}_o3`).value,
+                    document.getElementById(`q${i}_o4`).value,
+                    document.getElementById(`q${i}_o5`).value
+                ],
                 correct: document.getElementById(`q${i}_c`).value
             };
         }
         await set(ref(db, `daily_packs/${todayStr}`), pack);
+        alert("Paper Published Successfully!");
         location.reload();
     };
 
     window.deletePaper = async (date) => {
-        if(confirm("Delete?")) { await remove(ref(db, `daily_packs/${date}`)); location.reload(); }
+        if(confirm("Parana paper eka delete karannada?")) { 
+            await remove(ref(db, `daily_packs/${date}`)); 
+            location.reload(); 
+        }
     };
 
     loadDashboard();
