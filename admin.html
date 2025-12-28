@@ -12,17 +12,18 @@
 </head>
 <body>
     <div class="container" style="max-width: 800px;">
-        <h2 class="text-center mb-4">Admin Panel - Chemistry Booster</h2>
+        <h2 class="text-center mb-4">Admin - Chemistry Booster</h2>
 
         <div class="admin-card text-center border-danger">
-            <h5 class="text-danger">Delete Booster & Results</h5>
-            <p class="small text-white-50">අද දින ප්‍රශ්න සහ ළමයින් ලබාගත් ලකුණු (Results) සියල්ල මෙතැනින් මැකිය හැක.</p>
-            <button class="btn btn-danger px-5" onclick="deleteTodayBooster()">DELETE TODAY'S DATA</button>
+            <h5 class="text-danger">Danger Zone</h5>
+            <button class="btn btn-danger px-5" onclick="deleteBooster()">DELETE TODAY'S DATA</button>
         </div>
 
         <div class="admin-card">
             <h5>Upload New Booster</h5>
-            <button class="btn btn-primary w-100 py-3 mt-3" onclick="saveBooster()">PUBLISH BOOSTER</button>
+            <div id="q-inputs">
+                </div>
+            <button class="btn btn-primary w-100 py-3" onclick="saveBooster()">PUBLISH BOOSTER</button>
         </div>
     </div>
 
@@ -30,29 +31,20 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, set, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-        const firebaseConfig = { 
-            apiKey: "AIzaSyDMjYdugjdCiJG9uc9Ju_7n0qkljAiC9FE", 
-            authDomain: "morning-boost-48c64.firebaseapp.com", 
-            databaseURL: "https://morning-boost-48c64-default-rtdb.firebaseio.com", 
-            projectId: "morning-boost-48c64" 
-        };
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
+        const firebaseConfig = { apiKey: "AIzaSyDMjYdugjdCiJG9uc9Ju_7n0qkljAiC9FE", authDomain: "morning-boost-48c64.firebaseapp.com", databaseURL: "https://morning-boost-48c64-default-rtdb.firebaseio.com", projectId: "morning-boost-48c64" };
+        const app = initializeApp(firebaseConfig); const db = getDatabase(app);
         const todayStr = new Date().toISOString().split('T')[0];
 
-        // --- වැදගත්ම කොටස: මේකෙන් තමයි ඔක්කොම මැකෙන්නේ ---
-        window.deleteTodayBooster = async () => {
-            if(confirm("අද දින ප්‍රශ්න සහ සියලුම ළමයින්ගේ ලකුණු (Results) මකා දැමීමට ඔබට අවශ්‍යද?")) {
-                try {
-                    await remove(ref(db, `daily_packs/${todayStr}`));
-                    await remove(ref(db, `results/${todayStr}`));
-                    alert("සියලු දත්ත මැකුවා! දැන් ළමයින්ට අලුතින් වැඩේ කරන්න පුළුවන්.");
-                } catch (e) { alert("Error: " + e.message); }
+        window.deleteBooster = async () => {
+            if(confirm("අද දින ප්‍රශ්න සහ සියලු ළමයින්ගේ ලකුණු මැකීමට අවශ්‍යද?")) {
+                await remove(ref(db, `daily_packs/${todayStr}`));
+                await remove(ref(db, `results/${todayStr}`));
+                alert("දත්ත මැකුවා!");
             }
         };
 
         window.saveBooster = async () => {
-            // ඔයාගේ පරණ saveBooster Logic එක මෙතනට දාන්න
+            // ඔයාගේ පරණ Upload Logic එක මෙතනට දාන්න
         };
     </script>
 </body>
