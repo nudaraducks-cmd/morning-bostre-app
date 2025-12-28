@@ -3,53 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Morning Booster | Admin Panel</title>
+    <title>Admin Panel | Madawa Wijesingha</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { background: #f0f2f5; padding: 20px; font-family: 'Segoe UI', sans-serif; }
-        .admin-card { background: white; border-radius: 15px; padding: 25px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        .pattern-box { background: #fff3cd; padding: 10px; border-radius: 10px; margin-bottom: 10px; border-left: 5px solid #ffc107; }
+        body { background: #f8f9fa; font-family: 'Segoe UI', sans-serif; padding: 20px; }
+        .admin-card { background: white; border-radius: 20px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); margin-bottom: 25px; }
+        .old-item { background: #fff; padding: 15px; border-radius: 12px; margin-bottom: 8px; border: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+        .q-box { background: #fdfdfd; border-left: 5px solid #00d2ff; padding: 15px; border-radius: 10px; margin-bottom: 15px; }
     </style>
 </head>
 <body>
 
-<div class="container" style="max-width: 800px;">
-    <h2 class="fw-bold text-center mb-4">Admin Control Panel</h2>
+<div class="container" style="max-width: 850px;">
+    <h3 class="fw-bold mb-4 text-primary text-center">Booster Control Dashboard</h3>
 
     <div class="admin-card">
-        <h5 class="fw-bold mb-3 text-primary">General Configuration</h5>
+        <h6 class="fw-bold mb-3">Today's Setup</h6>
         <div class="row">
-            <div class="col-md-6 mb-3">
-                <label class="form-label">දිනය (Date)</label>
-                <input type="date" id="pack_date" class="form-control">
+            <div class="col-md-4 mb-3">
+                <label class="form-label">Date</label>
+                <input type="date" id="pack_date" class="form-control fw-bold" onchange="loadPack()">
             </div>
-            <div class="col-md-6 mb-3">
-                <label class="form-label">එක් ප්‍රශ්නයකට කාලය (Seconds)</label>
+            <div class="col-md-4 mb-3">
+                <label class="form-label">Time Per Q (s)</label>
                 <input type="number" id="timer_sec" class="form-control" value="60">
             </div>
-        </div>
-        <div class="mb-3">
-            <label class="form-label">SoundCloud Music URL</label>
-            <input type="text" id="music_url" class="form-control" placeholder="https://soundcloud.com/studymusicofficial/easy-mental-melodies">
-            <small class="text-muted">ඔබට අවශ්‍ය SoundCloud ලින්ක් එක මෙතනට පේස්ට් කරන්න.</small>
+            <div class="col-md-4 mb-3">
+                <label class="form-label">Music Link</label>
+                <input type="text" id="music_url" class="form-control" placeholder="SoundCloud Link">
+            </div>
         </div>
     </div>
 
-    <div id="questions-container">
-        </div>
+    <div id="q-area"></div>
+
+    <button class="btn btn-primary btn-lg w-100 py-3 rounded-pill fw-bold shadow mb-5" onclick="savePack()">SAVE & PUBLISH</button>
 
     <div class="admin-card">
-        <h5 class="fw-bold mb-3 text-success">Result Patterns & Explanations</h5>
-        <p class="small text-muted">ප්‍රතිඵල අනුව දරුවාට පෙන්විය යුතු පණිවිඩය සහ විවරණ ලින්ක් එක ඇතුළත් කරන්න.</p>
-        <div id="patterns-container"></div>
+        <h6 class="fw-bold mb-3">Paper History (Archive)</h6>
+        <div id="history-list"></div>
     </div>
-
-    <button class="btn btn-primary btn-lg w-100 mb-5 shadow" onclick="savePack()">PUBLISH DAILY BOOSTER</button>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+    import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyDMjYdugjdCiJG9uc9Ju_7n0qkljAiC9FE",
@@ -64,46 +62,56 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    // Render 3 Questions
-    const qContainer = document.getElementById('questions-container');
+    // Default to Today
+    document.getElementById('pack_date').valueAsDate = new Date();
+
+    const qArea = document.getElementById('q-area');
     for(let i=1; i<=3; i++) {
-        qContainer.innerHTML += `
-            <div class="admin-card">
-                <h6 class="fw-bold">ප්‍රශ්නය ${i}</h6>
-                <input type="text" id="q${i}_text" class="form-control mb-2" placeholder="ප්‍රශ්නය මෙතන ලියන්න">
-                <input type="text" id="q${i}_img" class="form-control mb-2" placeholder="Image URL (ඇත්නම් පමණක්)">
-                <div class="row g-2">
-                    <div class="col-6"><input type="text" id="q${i}_o1" class="form-control" placeholder="පිළිතුර 1"></div>
-                    <div class="col-6"><input type="text" id="q${i}_o2" class="form-control" placeholder="පිළිතුර 2"></div>
-                    <div class="col-6"><input type="text" id="q${i}_o3" class="form-control" placeholder="පිළිතුර 3"></div>
-                    <div class="col-6"><input type="text" id="q${i}_o4" class="form-control" placeholder="පිළිතුර 4"></div>
-                </div>
-                <select id="q${i}_corr" class="form-select mt-2"><option value="1">නිවැරදි පිළිතුර 1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option></select>
-            </div>`;
+        qArea.innerHTML += `<div class="admin-card q-box">
+            <h6 class="fw-bold">Question ${i}</h6>
+            <input type="text" id="q${i}_text" class="form-control mb-2" placeholder="Enter Question">
+            <input type="text" id="q${i}_img" class="form-control mb-2" placeholder="Image URL (optional)">
+            <div class="row g-2">
+                <div class="col-6"><input type="text" id="q${i}_o1" class="form-control" placeholder="Opt 1"></div>
+                <div class="col-6"><input type="text" id="q${i}_o2" class="form-control" placeholder="Opt 2"></div>
+                <div class="col-6"><input type="text" id="q${i}_o3" class="form-control" placeholder="Opt 3"></div>
+                <div class="col-6"><input type="text" id="q${i}_o4" class="form-control" placeholder="Opt 4"></div>
+            </div>
+            <select id="q${i}_corr" class="form-select mt-2 fw-bold text-info"><option value="1">Answer 1</option><option value="2">Answer 2</option><option value="3">Answer 3</option><option value="4">Answer 4</option></select>
+        </div>`;
     }
 
-    // Render 8 Patterns
-    const pContainer = document.getElementById('patterns-container');
-    for(let i=1; i<=8; i++) {
-        pContainer.innerHTML += `
-            <div class="pattern-box">
-                <label class="fw-bold">Pattern P${i}</label>
-                <input type="text" id="p${i}_msg" class="form-control mb-1" placeholder="පණිවිඩය (උදා: සුපිරි!)">
-                <input type="text" id="p${i}_url" class="form-control" placeholder="විවරණ වීඩියෝ ලින්ක් එක">
-            </div>`;
-    }
+    window.loadPack = async function() {
+        const date = document.getElementById('pack_date').value;
+        const snap = await get(ref(db, `daily_packs/${date}`));
+        if(snap.exists()){
+            const data = snap.val();
+            document.getElementById('timer_sec').value = data.timer_sec;
+            document.getElementById('music_url').value = data.music_url || "";
+            for(let i=1; i<=3; i++){
+                const q = data.questions[`q${i}`];
+                document.getElementById(`q${i}_text`).value = q.text;
+                document.getElementById(`q${i}_img`).value = q.img || "";
+                document.getElementById(`q${i}_o1`).value = q.options[0];
+                document.getElementById(`q${i}_o2`).value = q.options[1];
+                document.getElementById(`q${i}_o3`).value = q.options[2];
+                document.getElementById(`q${i}_o4`).value = q.options[3];
+                document.getElementById(`q${i}_corr`).value = q.correct;
+            }
+        } else {
+            // Reset for new entry
+            for(let i=1; i<=3; i++){
+                document.getElementById(`q${i}_text`).value = "";
+                document.getElementById(`q${i}_img`).value = "";
+                document.getElementById(`q${i}_o1`).value = "";
+            }
+        }
+    };
 
     window.savePack = async function() {
         const date = document.getElementById('pack_date').value;
-        if(!date) return alert("කරුණාකර දිනයක් තෝරන්න!");
-
-        const pack = {
-            timer_sec: document.getElementById('timer_sec').value,
-            music_url: document.getElementById('music_url').value,
-            questions: {},
-            patterns: {}
-        };
-
+        if(!date) return alert("Select a date!");
+        const pack = { timer_sec: document.getElementById('timer_sec').value, music_url: document.getElementById('music_url').value, questions: {}, patterns: {} };
         for(let i=1; i<=3; i++){
             pack.questions[`q${i}`] = {
                 text: document.getElementById(`q${i}_text`).value,
@@ -112,17 +120,30 @@
                 correct: document.getElementById(`q${i}_corr`).value
             };
         }
-
-        for(let i=1; i<=8; i++){
-            pack.patterns[`p${i}`] = {
-                msg: document.getElementById(`p${i}_msg`).value,
-                url: document.getElementById(`p${i}_url`).value
-            };
-        }
-
+        // Default Patterns
+        for(let i=1; i<=8; i++) pack.patterns[`p${i}`] = { msg: "Great Effort!", url: "#" };
+        
         await set(ref(db, `daily_packs/${date}`), pack);
-        alert("සාර්ථකව Publish කරන ලදී!");
+        alert("Published Successfully!");
+        loadHistory();
     };
+
+    async function loadHistory() {
+        const snap = await get(ref(db, `daily_packs`));
+        const list = document.getElementById('history-list');
+        list.innerHTML = "";
+        if(snap.exists()){
+            Object.keys(snap.val()).reverse().forEach(date => {
+                list.innerHTML += `<div class="old-item">
+                    <span>${date}</span>
+                    <button class="btn btn-sm btn-outline-primary" onclick="editDate('${date}')">Edit</button>
+                </div>`;
+            });
+        }
+    }
+    window.editDate = (d) => { document.getElementById('pack_date').value = d; window.loadPack(); };
+    loadHistory();
+    window.loadPack();
 </script>
 </body>
 </html>
