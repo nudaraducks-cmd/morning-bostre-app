@@ -3,58 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>පරිපාලන පුවරුව | Madawa Wijesingha</title>
+    <title>Admin Dashboard | Madawa Wijesingha</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         :root { --primary: #6f42c1; --bg: #f8f9fa; }
         body { background: var(--bg); font-family: 'Segoe UI', sans-serif; }
-        .header-bar { background: var(--primary); color: white; padding: 40px 20px; border-radius: 0 0 35px 35px; margin-bottom: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        .btn-update { background: #00d2ff; color: white; border: none; padding: 12px 30px; border-radius: 30px; font-weight: 800; transition: 0.3s; }
-        .paper-card { background: white; border-radius: 20px; padding: 25px; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.05); text-align: center; border-bottom: 5px solid #ccc; }
-        .date-box { background: #ff7f50; color: white; padding: 5px 15px; border-radius: 10px; font-weight: bold; display: inline-block; margin-bottom: 10px; }
-        #editor-page { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 10000; overflow-y: auto; padding: 20px; }
-        .logic-box { background: #f8f9fa; border-radius: 12px; padding: 15px; margin-bottom: 12px; border: 1px solid #e0e0e0; }
-        .logic-label { font-weight: bold; font-size: 0.9rem; color: #6f42c1; }
-        .q-card { border-radius: 15px; border: 1px solid #eee; margin-bottom: 20px; background: #fff; padding: 15px; }
+        .header-bar { background: var(--primary); color: white; padding: 30px; border-radius: 0 0 30px 30px; margin-bottom: 20px; }
+        .q-card { background: white; border-radius: 15px; padding: 15px; margin-bottom: 15px; border: 1px solid #ddd; }
+        #editor-page { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 1000; overflow-y: auto; padding: 20px; }
     </style>
 </head>
 <body>
 
 <div id="dashboard-view">
     <div class="header-bar text-center">
-        <h2 class="fw-bold">Daily Booster පරිපාලක පුවරුව</h2>
-        <p>දිනපතා ප්‍රශ්න පත්‍ර කළමනාකරණය</p>
-        <button class="btn-update mt-2" onclick="openEditor()">
-            <i class="fas fa-plus-circle me-2"></i>අද දින ප්‍රශ්න ඇතුළත් කරන්න
-        </button>
+        <h2 class="fw-bold">Booster පරිපාලක පුවරුව</h2>
+        <button class="btn btn-light mt-2 fw-bold" onclick="openEditor()">+ නව ප්‍රශ්න ඇතුළත් කරන්න</button>
     </div>
-    <div class="container">
-        <div id="paper-list" class="row g-3"></div>
-    </div>
+    <div class="container" id="paper-list"></div>
 </div>
 
 <div id="editor-page">
-    <div class="container" style="max-width: 1100px;">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h3 class="fw-bold text-primary">ප්‍රශ්න පත්‍රය සකසන්න</h3>
+    <div class="container" style="max-width: 900px;">
+        <div class="d-flex justify-content-between mb-4">
+            <h3 class="fw-bold text-primary">Paper Editor</h3>
             <button class="btn-close" onclick="closeEditor()"></button>
         </div>
 
-        <div class="row" id="form-content">
-            <div class="col-lg-6">
-                <h5 class="fw-bold mb-3 text-secondary text-uppercase" style="font-size: 0.8rem;">Questions & Options</h5>
-                <div id="questions-container"></div>
-            </div>
-            <div class="col-lg-6">
-                <h5 class="fw-bold mb-3 text-secondary text-uppercase" style="font-size: 0.8rem;">Result Patterns</h5>
-                <div id="logic-container" style="max-height: 75vh; overflow-y: auto;"></div>
-            </div>
+        <div class="row">
+            <div class="col-md-6" id="q-container"></div>
+            <div class="col-md-6" id="p-container"></div>
         </div>
 
-        <div class="text-center mt-4 mb-5">
-            <button class="btn btn-success btn-lg w-100 rounded-pill fw-bold py-3 shadow" onclick="saveData()">PUBLISH NOW</button>
-        </div>
+        <button class="btn btn-success btn-lg w-100 mt-4 py-3 fw-bold" onclick="saveData()">PUBLISH PAPER</button>
     </div>
 </div>
 
@@ -62,40 +44,17 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getDatabase, ref, get, set, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyDMjYdugjdCiJG9uc9Ju_7n0qkljAiC9FE",
-        authDomain: "morning-boost-48c64.firebaseapp.com",
-        databaseURL: "https://morning-boost-48c64-default-rtdb.firebaseio.com",
-        projectId: "morning-boost-48c64",
-        storageBucket: "morning-boost-48c64.firebasestorage.app",
-        messagingSenderId: "140528602458",
-        appId: "1:140528602458:web:34e14db5a5d93d1db13763"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+    const firebaseConfig = { apiKey: "AIzaSyDMjYdugjdCiJG9uc9Ju_7n0qkljAiC9FE", authDomain: "morning-boost-48c64.firebaseapp.com", databaseURL: "https://morning-boost-48c64-default-rtdb.firebaseio.com", projectId: "morning-boost-48c64", storageBucket: "morning-boost-48c64.firebasestorage.app", messagingSenderId: "140528602458", appId: "1:140528602458:web:34e14db5a5d93d1db13763" };
+    const app = initializeApp(firebaseConfig); const db = getDatabase(app);
     const todayStr = new Date().toISOString().split('T')[0];
 
-    const patternsMeta = [
-        {id: "p7", label: "සියල්ල හරි (RRR)", desc: "ප්‍රශ්න 3ම නිවැරදි වූ විට"},
-        {id: "p4", label: "පළමු 2 හරි (RRW)", desc: "1,2 හරි 3 වැරදි විට"},
-        {id: "p5", label: "1 සහ 3 හරි (RWR)", desc: "1,3 හරි 2 වැරදි විට"},
-        {id: "p1", label: "1 පමණක් හරි (RWW)", desc: "පළමු එක පමණක් හරි විට"},
-        {id: "p6", label: "අවසන් 2 හරි (WRR)", desc: "2,3 හරි 1 වැරදි විට"},
-        {id: "p2", label: "2 පමණක් හරි (WRW)", desc: "දෙවන එක පමණක් හරි විට"},
-        {id: "p3", label: "3 පමණක් හරි (WWR)", desc: "තෙවන එක පමණක් හරි විට"},
-        {id: "p8", label: "සියල්ල වැරදියි (WWW)", desc: "සියල්ල වැරදුණු විට"}
-    ];
-
-    // Enter to Focus Logic
+    // Smart Enter to move next
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && e.target.tagName !== 'BUTTON') {
             e.preventDefault();
-            const inputs = Array.from(document.querySelectorAll('#editor-page input, #editor-page textarea, #editor-page select'));
-            const index = inputs.indexOf(e.target);
-            if (index > -1 && index < inputs.length - 1) {
-                inputs[index + 1].focus();
-            }
+            const inputs = Array.from(document.querySelectorAll('input, textarea, select'));
+            const idx = inputs.indexOf(e.target);
+            if (idx > -1 && idx < inputs.length - 1) inputs[idx + 1].focus();
         }
     });
 
@@ -105,40 +64,25 @@
     };
 
     function setupForm() {
-        const qCont = document.getElementById('questions-container'); qCont.innerHTML = "";
+        const qc = document.getElementById('q-container'); qc.innerHTML = "";
         for(let i=1; i<=3; i++){
-            qCont.innerHTML += `
-            <div class="card q-card shadow-sm">
-                <h6 class="fw-bold">ප්‍රශ්නය ${i}</h6>
-                <textarea id="q${i}_t" class="form-control mb-2" rows="2" placeholder="ප්‍රශ්නය ලියන්න"></textarea>
-                <input type="text" id="q${i}_i" class="form-control mb-3" placeholder="Image URL (ඇත්නම්)">
-                <div class="row g-2">${[1,2,3,4,5].map(o => `<div class="col-6"><input type="text" id="q${i}_o${o}" class="form-control form-control-sm mb-2" placeholder="පිළිතුර ${o}"></div>`).join('')}</div>
-                <select id="q${i}_c" class="form-select mt-2"><option value="1">Ans 1</option><option value="2">Ans 2</option><option value="3">Ans 3</option><option value="4">Ans 4</option><option value="5">Ans 5</option></select>
-            </div>`;
+            qc.innerHTML += `<div class="q-card"><h6>ප්‍රශ්නය ${i}</h6><textarea id="q${i}_t" class="form-control mb-2" placeholder="Text"></textarea><input id="q${i}_i" class="form-control mb-2" placeholder="Img URL"><div class="row g-1">${[1,2,3,4,5].map(o=>`<div class="col-6"><input id="q${i}_o${o}" class="form-control form-control-sm" placeholder="Opt ${o}"></div>`).join('')}</div><select id="q${i}_c" class="form-select mt-2"><option value="1">Ans 1</option><option value="2">Ans 2</option><option value="3">Ans 3</option><option value="4">Ans 4</option><option value="5">Ans 5</option></select></div>`;
         }
-        const lCont = document.getElementById('logic-container'); lCont.innerHTML = "";
-        patternsMeta.forEach(pm => {
-            lCont.innerHTML += `
-            <div class="logic-box shadow-sm">
-                <div class="logic-label">${pm.label}</div>
-                <input type="text" id="${pm.id}_m" class="form-control form-control-sm mb-1" placeholder="පණිවිඩය">
-                <input type="text" id="${pm.id}_u" class="form-control form-control-sm" placeholder="Video URL">
-            </div>`;
+        const pc = document.getElementById('p-container'); pc.innerHTML = "";
+        const ps = ["p7 (RRR)", "p4 (RRW)", "p5 (RWR)", "p1 (RWW)", "p6 (WRR)", "p2 (WRW)", "p3 (WWR)", "p8 (WWW)"];
+        ps.forEach((p, i) => {
+            const id = p.split(' ')[0];
+            pc.innerHTML += `<div class="card p-2 mb-2"><h6>${p}</h6><input id="${id}_m" class="form-control form-control-sm mb-1" placeholder="Message"><input id="${id}_u" class="form-control form-control-sm" placeholder="URL"></div>`;
         });
     }
 
-    window.saveData = async function() {
+    window.saveData = async () => {
         const pack = { questions: {}, patterns: {} };
         for(let i=1; i<=3; i++){
-            pack.questions[`q${i}`] = {
-                text: document.getElementById(`q${i}_t`).value,
-                img: document.getElementById(`q${i}_i`).value,
-                options: [document.getElementById(`q${i}_o1`).value, document.getElementById(`q${i}_o2`).value, document.getElementById(`q${i}_o3`).value, document.getElementById(`q${i}_o4`).value, document.getElementById(`q${i}_o5`).value],
-                correct: document.getElementById(`q${i}_c`).value
-            };
+            pack.questions[`q${i}`] = { text: document.getElementById(`q${i}_t`).value, img: document.getElementById(`q${i}_i`).value, options: [1,2,3,4,5].map(o=>document.getElementById(`q${i}_o${o}`).value), correct: document.getElementById(`q${i}_c`).value };
         }
-        patternsMeta.forEach(pm => {
-            pack.patterns[pm.id] = { msg: document.getElementById(`${pm.id}_m`).value, url: document.getElementById(`${pm.id}_u`).value };
+        ["p1","p2","p3","p4","p5","p6","p7","p8"].forEach(id => {
+            pack.patterns[id] = { msg: document.getElementById(`${id}_m`).value, url: document.getElementById(`${id}_u`).value };
         });
         await set(ref(db, `daily_packs/${todayStr}`), pack);
         alert("Published!"); location.reload();
@@ -151,7 +95,7 @@
         if(snap.exists()){
             const list = document.getElementById('paper-list');
             Object.keys(snap.val()).reverse().forEach(date => {
-                list.innerHTML += `<div class="col-md-4"><div class="paper-card"><div class="date-box">${date}</div><br><button class="btn btn-outline-danger btn-sm mt-3" onclick="deletePaper('${date}')">Delete</button></div></div>`;
+                list.innerHTML += `<div class="card p-3 mb-2 d-flex flex-row justify-content-between"><span>${date} Paper</span><button class="btn btn-danger btn-sm" onclick="deletePaper('${date}')">Delete</button></div>`;
             });
         }
     }
