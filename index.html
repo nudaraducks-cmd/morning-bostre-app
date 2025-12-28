@@ -112,35 +112,41 @@
             syncUI();
         }
 
-        // --- Real-time Booster Listener ---
+        // --- Improved Booster Listener ---
         function listenForBooster() {
-            onValue(ref(db, `daily_packs/${todayStr}`), (snapshot) => {
-                const startBtn = document.getElementById('start-btn');
-                const statusMsg = document.getElementById('status-msg');
+            // පළමුව ශිෂ්‍යයා ලකුණු ලබාගෙන ඇත්දැයි Firebase එකෙන්ම පරීක්ෂා කිරීම
+            onValue(ref(db, `results/${todayStr}/${session.id}`), (scoreSnap) => {
+                const hasDoneInDB = scoreSnap.exists();
                 
-                if (!snapshot.exists()) {
-                    startBtn.disabled = true;
-                    startBtn.innerText = "NO BOOSTER TODAY";
-                    statusMsg.innerText = "Admin is updating the booster. Please wait...";
-                    statusMsg.classList.remove('d-none');
-                    currentPack = null;
-                } else {
-                    currentPack = snapshot.val();
-                    qKeys = Object.keys(currentPack.questions);
+                onValue(ref(db, `daily_packs/${todayStr}`), (snapshot) => {
+                    const startBtn = document.getElementById('start-btn');
+                    const statusMsg = document.getElementById('status-msg');
                     
-                    // Check if already done
-                    const alreadyDone = localStorage.getItem(`done_${session.id}`) === todayStr;
-                    if (alreadyDone) {
+                    if (!snapshot.exists()) {
                         startBtn.disabled = true;
-                        startBtn.innerText = "DONE FOR TODAY ✅";
-                        statusMsg.innerText = "You have already completed this booster.";
+                        startBtn.innerText = "NO BOOSTER TODAY";
+                        statusMsg.innerText = "Admin is updating the booster...";
                         statusMsg.classList.remove('d-none');
+                        currentPack = null;
+                        // ප්‍රශ්න පත්‍රය මැකූ විට ශිෂ්‍යයාට නැවත කිරීමට ඉඩ දීම සඳහා Local Storage එක Clear කිරීම
+                        localStorage.removeItem(`done_${session.id}`);
                     } else {
-                        startBtn.disabled = false;
-                        startBtn.innerText = "START TODAY BOOSTER";
-                        statusMsg.classList.add('d-none');
+                        currentPack = snapshot.val();
+                        qKeys = Object.keys(currentPack.questions);
+                        
+                        // Firebase එකේ ලකුණු නැත්නම්, එයාට පරණ Local Done එක තිබුණත් කරන්න ඉඩ දෙනවා
+                        if (hasDoneInDB) {
+                            startBtn.disabled = true;
+                            startBtn.innerText = "DONE FOR TODAY ✅";
+                            statusMsg.innerText = "You have already completed this booster.";
+                            statusMsg.classList.remove('d-none');
+                        } else {
+                            startBtn.disabled = false;
+                            startBtn.innerText = "START TODAY BOOSTER";
+                            statusMsg.classList.add('d-none');
+                        }
                     }
-                }
+                });
             });
         }
 
@@ -153,12 +159,12 @@
 
         window.initBooster = () => {
             if(!currentPack) return alert("Booster not ready!");
+            currentQIndex = 0; userResponses = []; // Reset variables
             document.getElementById('dashboard').style.display = 'none';
             document.getElementById('game-view').style.display = 'block';
             loadQuestion();
         };
 
-        // Question logic, timer, and finish logic (stays robust as before)
         function loadQuestion() {
             if(currentQIndex >= qKeys.length) return finishGame();
             selectedIdx = null; const q = currentPack.questions[qKeys[currentQIndex]];
