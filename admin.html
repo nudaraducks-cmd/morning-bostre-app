@@ -3,31 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard | Madawa Wijesingha</title>
+    <title>පරිපාලන පුවරුව | Madawa Wijesingha</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         :root { --primary: #6f42c1; --bg: #f8f9fa; }
         body { background: var(--bg); font-family: 'Segoe UI', sans-serif; }
-        .header-bar { background: var(--primary); color: white; padding: 40px 20px; border-radius: 0 0 35px 35px; margin-bottom: 30px; }
-        .btn-update { background: #00d2ff; color: white; border: none; padding: 12px 30px; border-radius: 30px; font-weight: 800; }
+        .header-bar { background: var(--primary); color: white; padding: 40px 20px; border-radius: 0 0 35px 35px; margin-bottom: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .btn-update { background: #00d2ff; color: white; border: none; padding: 12px 30px; border-radius: 30px; font-weight: 800; transition: 0.3s; }
         .paper-card { background: white; border-radius: 20px; padding: 25px; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.05); text-align: center; border-bottom: 5px solid #ccc; }
-        .paper-card.today { border-bottom-color: #28a745; }
         .date-box { background: #ff7f50; color: white; padding: 5px 15px; border-radius: 10px; font-weight: bold; display: inline-block; margin-bottom: 10px; }
         #editor-page { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 10000; overflow-y: auto; padding: 20px; }
-        .logic-box { background: #f8f9fa; border-radius: 12px; padding: 12px; margin-bottom: 10px; border: 1px solid #dee2e6; }
-        .logic-label { font-weight: bold; font-size: 0.85rem; color: #444; }
-        .logic-desc { font-size: 0.75rem; color: #666; display: block; margin-bottom: 5px; }
+        .logic-box { background: #f8f9fa; border-radius: 12px; padding: 15px; margin-bottom: 12px; border: 1px solid #e0e0e0; }
+        .logic-label { font-weight: bold; font-size: 0.9rem; color: #6f42c1; }
+        .q-card { border-radius: 15px; border: 1px solid #eee; margin-bottom: 20px; background: #fff; padding: 15px; }
     </style>
 </head>
 <body>
 
 <div id="dashboard-view">
     <div class="header-bar text-center">
-        <h2 class="fw-bold">Daily Booster Manager</h2>
-        <p>Manage your daily chemistry papers</p>
+        <h2 class="fw-bold">Daily Booster පරිපාලක පුවරුව</h2>
+        <p>දිනපතා ප්‍රශ්න පත්‍ර කළමනාකරණය</p>
         <button class="btn-update mt-2" onclick="openEditor()">
-            <i class="fas fa-plus-circle me-2"></i>Update Today Question
+            <i class="fas fa-plus-circle me-2"></i>අද දින ප්‍රශ්න ඇතුළත් කරන්න
         </button>
     </div>
     <div class="container">
@@ -36,26 +35,26 @@
 </div>
 
 <div id="editor-page">
-    <div class="container" style="max-width: 1000px;">
+    <div class="container" style="max-width: 1100px;">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h3 class="fw-bold text-primary">Paper Editor</h3>
+            <h3 class="fw-bold text-primary">ප්‍රශ්න පත්‍රය සකසන්න</h3>
             <button class="btn-close" onclick="closeEditor()"></button>
         </div>
 
-        <div class="row">
+        <div class="row" id="form-content">
             <div class="col-lg-6">
-                <h5 class="fw-bold mb-3"><i class="fas fa-edit me-2"></i>Questions & Options</h5>
+                <h5 class="fw-bold mb-3 text-secondary text-uppercase" style="font-size: 0.8rem;">Questions & Options</h5>
                 <div id="questions-container"></div>
             </div>
-
             <div class="col-lg-6">
-                <h5 class="fw-bold mb-3"><i class="fas fa-cog me-2"></i>Result Logic Setup (හරි/වැරදි අනුව)</h5>
-                <div id="logic-container" style="max-height: 80vh; overflow-y: auto; padding-right: 5px;">
-                    </div>
+                <h5 class="fw-bold mb-3 text-secondary text-uppercase" style="font-size: 0.8rem;">Result Patterns</h5>
+                <div id="logic-container" style="max-height: 75vh; overflow-y: auto;"></div>
             </div>
         </div>
 
-        <button class="btn btn-success btn-lg w-100 rounded-pill fw-bold py-3 mt-4 mb-5 shadow" onclick="saveData()">PUBLISH PAPER</button>
+        <div class="text-center mt-4 mb-5">
+            <button class="btn btn-success btn-lg w-100 rounded-pill fw-bold py-3 shadow" onclick="saveData()">PUBLISH NOW</button>
+        </div>
     </div>
 </div>
 
@@ -78,15 +77,27 @@
     const todayStr = new Date().toISOString().split('T')[0];
 
     const patternsMeta = [
-        {id: "p7", label: "හරි - හරි - හරි (RRR)", desc: "ප්‍රශ්න 3ම නිවැරදි විට"},
-        {id: "p4", label: "හරි - හරි - වැරදි (RRW)", desc: "පළමු දෙක හරි, අවසන් එක වැරදි විට"},
-        {id: "p5", label: "හරි - වැරදි - හරි (RWR)", desc: "පළමු හා අවසන් එක හරි විට"},
-        {id: "p1", label: "හරි - වැරදි - වැරදි (RWW)", desc: "පළමුවැන්න පමණක් හරි විට"},
-        {id: "p6", label: "වැරදි - හරි - හරි (WRR)", desc: "අවසන් දෙක පමණක් හරි විට"},
-        {id: "p2", label: "වැරදි - හරි - වැරදි (WRW)", desc: "දෙවැන්න පමණක් හරි විට"},
-        {id: "p3", label: "වැරදි - වැරදි - හරි (WWR)", desc: "අවසන් එක පමණක් හරි විට"},
-        {id: "p8", label: "වැරදි - වැරදි - වැරදි (WWW)", desc: "සියල්ල වැරදි විට"}
+        {id: "p7", label: "සියල්ල හරි (RRR)", desc: "ප්‍රශ්න 3ම නිවැරදි වූ විට"},
+        {id: "p4", label: "පළමු 2 හරි (RRW)", desc: "1,2 හරි 3 වැරදි විට"},
+        {id: "p5", label: "1 සහ 3 හරි (RWR)", desc: "1,3 හරි 2 වැරදි විට"},
+        {id: "p1", label: "1 පමණක් හරි (RWW)", desc: "පළමු එක පමණක් හරි විට"},
+        {id: "p6", label: "අවසන් 2 හරි (WRR)", desc: "2,3 හරි 1 වැරදි විට"},
+        {id: "p2", label: "2 පමණක් හරි (WRW)", desc: "දෙවන එක පමණක් හරි විට"},
+        {id: "p3", label: "3 පමණක් හරි (WWR)", desc: "තෙවන එක පමණක් හරි විට"},
+        {id: "p8", label: "සියල්ල වැරදියි (WWW)", desc: "සියල්ල වැරදුණු විට"}
     ];
+
+    // Enter to Focus Logic
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && e.target.tagName !== 'BUTTON') {
+            e.preventDefault();
+            const inputs = Array.from(document.querySelectorAll('#editor-page input, #editor-page textarea, #editor-page select'));
+            const index = inputs.indexOf(e.target);
+            if (index > -1 && index < inputs.length - 1) {
+                inputs[index + 1].focus();
+            }
+        }
+    });
 
     window.openEditor = () => {
         document.getElementById('editor-page').style.display = 'block';
@@ -97,24 +108,21 @@
         const qCont = document.getElementById('questions-container'); qCont.innerHTML = "";
         for(let i=1; i<=3; i++){
             qCont.innerHTML += `
-            <div class="card p-3 border-0 shadow-sm rounded-4 mb-3">
+            <div class="card q-card shadow-sm">
                 <h6 class="fw-bold">ප්‍රශ්නය ${i}</h6>
                 <textarea id="q${i}_t" class="form-control mb-2" rows="2" placeholder="ප්‍රශ්නය ලියන්න"></textarea>
-                <div class="row g-2">
-                    ${[1,2,3,4,5].map(o => `<div class="col-6"><input type="text" id="q${i}_o${o}" class="form-control form-control-sm" placeholder="පිළිතුර ${o}"></div>`).join('')}
-                </div>
-                <select id="q${i}_c" class="form-select mt-2 fw-bold text-success"><option value="1">නිවැරදි පිළිතුර: 1</option><option value="2">නිවැරදි පිළිතුර: 2</option><option value="3">නිවැරදි පිළිතුර: 3</option><option value="4">නිවැරදි පිළිතුර: 4</option><option value="5">නිවැරදි පිළිතුර: 5</option></select>
+                <input type="text" id="q${i}_i" class="form-control mb-3" placeholder="Image URL (ඇත්නම්)">
+                <div class="row g-2">${[1,2,3,4,5].map(o => `<div class="col-6"><input type="text" id="q${i}_o${o}" class="form-control form-control-sm mb-2" placeholder="පිළිතුර ${o}"></div>`).join('')}</div>
+                <select id="q${i}_c" class="form-select mt-2"><option value="1">Ans 1</option><option value="2">Ans 2</option><option value="3">Ans 3</option><option value="4">Ans 4</option><option value="5">Ans 5</option></select>
             </div>`;
         }
-
         const lCont = document.getElementById('logic-container'); lCont.innerHTML = "";
         patternsMeta.forEach(pm => {
             lCont.innerHTML += `
             <div class="logic-box shadow-sm">
-                <div class="logic-label text-primary">${pm.label}</div>
-                <span class="logic-desc">${pm.desc}</span>
-                <input type="text" id="${pm.id}_m" class="form-control form-control-sm mb-1" placeholder="පණිවිඩය (Message)">
-                <input type="text" id="${pm.id}_u" class="form-control form-control-sm" placeholder="වීඩියෝ ලින්ක් එක (URL)">
+                <div class="logic-label">${pm.label}</div>
+                <input type="text" id="${pm.id}_m" class="form-control form-control-sm mb-1" placeholder="පණිවිඩය">
+                <input type="text" id="${pm.id}_u" class="form-control form-control-sm" placeholder="Video URL">
             </div>`;
         });
     }
@@ -124,6 +132,7 @@
         for(let i=1; i<=3; i++){
             pack.questions[`q${i}`] = {
                 text: document.getElementById(`q${i}_t`).value,
+                img: document.getElementById(`q${i}_i`).value,
                 options: [document.getElementById(`q${i}_o1`).value, document.getElementById(`q${i}_o2`).value, document.getElementById(`q${i}_o3`).value, document.getElementById(`q${i}_o4`).value, document.getElementById(`q${i}_o5`).value],
                 correct: document.getElementById(`q${i}_c`).value
             };
@@ -132,21 +141,20 @@
             pack.patterns[pm.id] = { msg: document.getElementById(`${pm.id}_m`).value, url: document.getElementById(`${pm.id}_u`).value };
         });
         await set(ref(db, `daily_packs/${todayStr}`), pack);
-        alert("Paper Published!"); location.reload();
+        alert("Published!"); location.reload();
     };
 
     window.closeEditor = () => document.getElementById('editor-page').style.display = 'none';
-    
+
     async function loadDashboard() {
         const snap = await get(ref(db, 'daily_packs'));
         if(snap.exists()){
             const list = document.getElementById('paper-list');
             Object.keys(snap.val()).reverse().forEach(date => {
-                list.innerHTML += `<div class="col-md-4"><div class="paper-card"><div class="date-box">${date}</div><br><button class="btn btn-danger btn-sm mt-3" onclick="deletePaper('${date}')">Delete Paper</button></div></div>`;
+                list.innerHTML += `<div class="col-md-4"><div class="paper-card"><div class="date-box">${date}</div><br><button class="btn btn-outline-danger btn-sm mt-3" onclick="deletePaper('${date}')">Delete</button></div></div>`;
             });
         }
     }
-
     window.deletePaper = async (d) => { if(confirm("Delete?")) { await remove(ref(db, `daily_packs/${d}`)); location.reload(); }};
     loadDashboard();
 </script>
