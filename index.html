@@ -10,7 +10,6 @@
         :root { --bg: #0b0f1a; --accent: #00d2ff; --glass: rgba(255, 255, 255, 0.05); }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; min-height: 100vh; }
         
-        /* Teacher Branding Header */
         .teacher-header { 
             display: flex; align-items: center; justify-content: center; 
             gap: 20px; padding: 40px 20px; 
@@ -18,22 +17,21 @@
             border-radius: 0 0 40px 40px; margin-bottom: 25px;
         }
         .teacher-img { 
-            width: 100px; height: 100px; border-radius: 20px; 
+            width: 90px; height: 90px; border-radius: 20px; 
             border: 2px solid var(--accent); object-fit: cover;
             box-shadow: 0 0 15px rgba(0,210,255,0.3);
         }
-        .brand-name { font-weight: 800; font-size: 1.4rem; margin: 0; line-height: 1.2; text-transform: uppercase; }
-        .brand-sub { font-size: 0.85rem; color: var(--accent); letter-spacing: 2px; font-weight: bold; }
+        .brand-name { font-weight: 800; font-size: 1.4rem; margin: 0; text-transform: uppercase; }
+        .brand-sub { font-size: 0.85rem; color: var(--accent); font-weight: bold; }
 
         .glass-card { background: var(--glass); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); border-radius: 25px; padding: 25px; margin-bottom: 20px; }
-        .booster-btn { background: linear-gradient(135deg, #00d2ff, #3a7bd5); border: none; padding: 20px; border-radius: 20px; font-weight: 800; width: 100%; color: white; box-shadow: 0 8px 20px rgba(0,210,255,0.2); transition: 0.3s; }
-        .booster-btn:active { transform: scale(0.97); }
-
+        .booster-btn { background: linear-gradient(135deg, #00d2ff, #3a7bd5); border: none; padding: 20px; border-radius: 20px; font-weight: 800; width: 100%; color: white; box-shadow: 0 8px 20px rgba(0,210,255,0.2); }
+        
         #game-view { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 10000; padding: 20px; overflow-y: auto; }
         .timer-circle { width: 65px; height: 65px; border: 3px solid var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-weight: bold; font-size: 1.4rem; color: var(--accent); }
-        .option-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 16px; margin-bottom: 12px; border-radius: 15px; width: 100%; text-align: left; transition: 0.2s; }
-        .option-btn.selected { background: var(--accent); font-weight: bold; border-color: white; }
-        .music-toggle { position: fixed; top: 20px; right: 20px; z-index: 10001; background: var(--accent); border: none; width: 45px; height: 45px; border-radius: 50%; color: white; display: none; box-shadow: 0 0 15px var(--accent); }
+        .option-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 16px; margin-bottom: 12px; border-radius: 15px; width: 100%; text-align: left; }
+        .option-btn.selected { background: var(--accent); font-weight: bold; }
+        .music-toggle { position: fixed; top: 20px; right: 20px; z-index: 10001; background: var(--accent); border: none; width: 45px; height: 45px; border-radius: 50%; color: white; display: none; }
     </style>
 </head>
 <body>
@@ -41,7 +39,7 @@
     <button id="music-btn" class="music-toggle" onclick="toggleMusic()"><i id="m-icon" class="fas fa-play"></i></button>
 
     <div class="teacher-header">
-        <img src="ChatGPT Image Dec 28, 2025, 08_23_10 AM.png" class="teacher-img" alt="Madawa Wijesingha">
+        <img src="sir.png" class="teacher-img" alt="Madawa Wijesingha">
         <div>
             <h4 class="brand-name">MADAWA WIJESINGHA</h4>
             <div class="brand-sub">CHEMISTRY</div>
@@ -53,19 +51,23 @@
             <h5 class="fw-bold mb-4">Student Portal</h5>
             <input type="text" id="log_id" class="form-control mb-3 bg-dark text-white border-0 py-3 rounded-pill text-center" placeholder="ID Number">
             <input type="text" id="log_pass" class="form-control mb-4 bg-dark text-white border-0 py-3 rounded-pill text-center" placeholder="Password">
-            <button class="btn btn-primary w-100 py-3 rounded-pill fw-bold" onclick="handleLogin()">ENTER</button>
+            <button class="btn btn-primary w-100 py-3 rounded-pill fw-bold" onclick="handleLogin()">LOGIN</button>
         </div>
     </div>
 
     <div id="dashboard" class="container" style="display:none;">
-        <div class="glass-card">
+        <div class="glass-card text-center">
             <h6 class="text-accent mb-3">Welcome, <span id="user-name">...</span></h6>
-            <button class="booster-btn" onclick="initBooster()">START TODAY BOOSTER</button>
+            <button class="booster-btn mb-3" onclick="initBooster()">START TODAY BOOSTER</button>
         </div>
+
         <div class="glass-card">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <span class="small fw-bold">LEADERBOARD (TOP 5)</span>
-            </div>
+            <h6 class="fw-bold mb-3 small"><i class="fas fa-chart-line me-2"></i>YOUR PROGRESS</h6>
+            <canvas id="progressChart" height="150"></canvas>
+        </div>
+
+        <div class="glass-card">
+            <h6 class="fw-bold mb-3 small"><i class="fas fa-trophy me-2 text-warning"></i>TOP 5 TODAY</h6>
             <div id="leaderboard-list" class="small">Loading...</div>
         </div>
     </div>
@@ -86,7 +88,7 @@
         <h2 class="text-accent mb-4">Done!</h2>
         <div class="glass-card">
             <h5 id="result-msg" class="mb-4">...</h5>
-            <a id="result-url" href="#" target="_blank" class="btn btn-success btn-lg rounded-pill px-5 fw-bold">Watch Explanation</a>
+            <a id="result-url" href="#" target="_blank" class="btn btn-success btn-lg rounded-pill px-5 fw-bold">Watch Video</a>
         </div>
         <button class="btn btn-link text-white mt-3" onclick="location.reload()">Back Home</button>
     </div>
@@ -94,6 +96,7 @@
     <div id="sc-container" style="display:none;"></div>
 
     <script src="https://w.soundcloud.com/player/api.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, get, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
@@ -120,7 +123,7 @@
             if(snap.exists() && snap.val().password === pass){
                 localStorage.setItem('mb_session', JSON.stringify({user: snap.val(), id: id}));
                 location.reload();
-            } else alert("Invalid ID or Password!");
+            } else alert("වැරදි ID එකක් හෝ Password එකක්!");
         };
 
         const session = JSON.parse(localStorage.getItem('mb_session'));
@@ -129,6 +132,7 @@
             document.getElementById('dashboard').style.display = 'block';
             document.getElementById('user-name').innerText = session.user.name;
             loadLeaderboard();
+            loadProgressChart();
         }
 
         async function loadLeaderboard() {
@@ -138,7 +142,36 @@
             if(snap.exists()){
                 const players = Object.values(snap.val()).sort((a,b) => b.score - a.score);
                 list.innerHTML = players.slice(0, 5).map((p, i) => `<div class="d-flex justify-content-between mb-1"><span>${i+1}. ${p.name}</span><b>${p.score} pts</b></div>`).join('');
-            } else { list.innerText = "No results yet for today."; }
+            } else { list.innerText = "තවම අද දිනට ලකුණු නොමැත."; }
+        }
+
+        async function loadProgressChart() {
+            const snap = await get(ref(db, `results`));
+            if(!snap.exists()) return;
+            const dates = Object.keys(snap.val()).sort().slice(-7); // Last 7 days
+            const scores = dates.map(d => snap.val()[d][session.id]?.score || 0);
+
+            new Chart(document.getElementById('progressChart'), {
+                type: 'line',
+                data: {
+                    labels: dates,
+                    datasets: [{
+                        label: 'Score',
+                        data: scores,
+                        borderColor: '#00d2ff',
+                        backgroundColor: 'rgba(0, 210, 255, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, max: 30, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#fff' } },
+                        x: { grid: { display: false }, ticks: { color: '#fff' } }
+                    }
+                }
+            });
         }
 
         window.initBooster = async function() {
@@ -154,7 +187,7 @@
                 widget = SC.Widget(document.getElementById('sc-widget'));
                 document.getElementById('music-btn').style.display = 'block';
             }
-
+            document.getElementById('dashboard').style.display = 'none';
             document.getElementById('game-view').style.display = 'block';
             loadQuestion();
         };
@@ -178,7 +211,7 @@
         };
 
         window.nextQuestion = () => {
-            if(!selectedAns) return alert("Please select an answer!");
+            if(!selectedAns) return alert("පිළිතුරක් තෝරන්න!");
             userAnswers.push(selectedAns.isCorr);
             currentQIndex++; clearInterval(timerInterval); loadQuestion();
         };
