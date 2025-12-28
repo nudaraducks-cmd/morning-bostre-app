@@ -14,11 +14,11 @@
         .teacher-img { width: 90px; height: 90px; border-radius: 20px; border: 2px solid var(--accent); object-fit: cover; }
         .glass-card { background: var(--glass); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); border-radius: 25px; padding: 25px; margin-bottom: 20px; }
         .booster-btn { background: linear-gradient(135deg, #00d2ff, #3a7bd5); border: none; padding: 18px; border-radius: 20px; font-weight: 800; width: 100%; color: white; box-shadow: 0 8px 20px rgba(0,210,255,0.2); transition: 0.3s; }
+        .booster-btn:disabled { background: #444; color: #888; box-shadow: none; cursor: not-allowed; }
         #game-view, #review-view { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 10000; padding: 20px; overflow-y: auto; }
         .timer-circle { width: 65px; height: 65px; border: 3px solid var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-weight: bold; font-size: 1.4rem; color: var(--accent); }
         .option-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 16px; margin-bottom: 12px; border-radius: 15px; width: 100%; text-align: left; }
         .option-btn.selected { background: var(--accent); font-weight: bold; color: #000; }
-        /* Badge Psychology */
         .badge-master { background: linear-gradient(45deg, #ffd700, #ffa500); color: #000; padding: 10px 20px; border-radius: 50px; font-weight: 800; display: inline-block; margin-top: 15px; animation: pop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         @keyframes pop { 0% { transform: scale(0); } 100% { transform: scale(1); } }
     </style>
@@ -47,10 +47,13 @@
             <div class="glass-card">
                 <h5 class="fw-bold mb-1" id="greeting-text">...</h5>
                 <p id="user-name" class="text-white-50 small mb-4"></p>
-                <button class="booster-btn mb-4" onclick="initBooster()">START TODAY BOOSTER</button>
+                
+                <p id="completion-status" class="text-warning small mb-2 d-none fw-bold">⚠️ You have already completed today's booster!</p>
+                <button id="start-btn" class="booster-btn mb-4" onclick="initBooster()">START TODAY BOOSTER</button>
+                
                 <div class="d-flex justify-content-between align-items-center">
-                    <span class="stat-badge"><i class="fas fa-fire me-1 text-warning"></i> 1 Day Streak</span>
-                    <span class="stat-badge"><i class="fas fa-users me-1"></i> <span id="global-count">0</span> Played</span>
+                    <span class="stat-badge"><i class="fas fa-fire me-1 text-warning"></i> Active Streak</span>
+                    <span class="stat-badge"><i class="fas fa-users me-1"></i> <span id="global-count">0</span> Played Today</span>
                 </div>
             </div>
             <div class="glass-card"><canvas id="progressChart" height="180"></canvas></div>
@@ -75,7 +78,15 @@
                 <p id="result-msg" class="mb-4 px-3 fw-bold"></p>
                 <a id="result-url" href="#" target="_blank" class="btn btn-success btn-lg rounded-pill px-5 fw-bold mb-3 w-100 shadow">Watch Explanation</a>
                 <button class="btn btn-outline-info rounded-pill w-100 fw-bold mb-3" onclick="showReview()">Review Answers</button>
-                <button class="btn btn-link text-white-50 text-decoration-none" onclick="location.reload()">Back</button>
+                <button class="btn btn-link text-white-50 text-decoration-none" onclick="location.reload()">Back to Dashboard</button>
+            </div>
+        </div>
+
+        <div id="review-view">
+            <div class="container py-3">
+                <h4 class="fw-bold text-accent mb-4">Review Answers</h4>
+                <div id="review-list"></div>
+                <button class="btn btn-primary w-100 py-3 rounded-pill mt-4" onclick="location.reload()">Close</button>
             </div>
         </div>
     </div>
@@ -88,9 +99,11 @@
         const firebaseConfig = { apiKey: "AIzaSyDMjYdugjdCiJG9uc9Ju_7n0qkljAiC9FE", authDomain: "morning-boost-48c64.firebaseapp.com", databaseURL: "https://morning-boost-48c64-default-rtdb.firebaseio.com", projectId: "morning-boost-48c64", storageBucket: "morning-boost-48c64.firebasestorage.app", messagingSenderId: "140528602458", appId: "1:140528602458:web:34e14db5a5d93d1db13763" };
         const app = initializeApp(firebaseConfig); const db = getDatabase(app);
         const session = JSON.parse(localStorage.getItem('mb_session'));
+        const todayStr = new Date().toISOString().split('T')[0];
+        
         let currentPack, qKeys, currentQIndex = 0, userResponses = [], selectedIdx = null, timerInterval;
 
-        // Smart Enter for Login
+        // Smart Enter Logic
         document.addEventListener('keydown', (e) => {
             if(e.key === 'Enter') {
                 if(document.activeElement.id === 'log_id') document.getElementById('log_pass').focus();
@@ -112,20 +125,29 @@
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('dashboard').style.display = 'block';
             document.getElementById('user-name').innerText = session.user.name;
+            checkCompletion();
             syncUI();
+        }
+
+        // --- නව මනෝවිද්‍යාත්මක ආරක්ෂාව (Once a day) ---
+        function checkCompletion() {
+            const lastDone = localStorage.getItem(`done_${session.id}`);
+            if(lastDone === todayStr) {
+                document.getElementById('start-btn').disabled = true;
+                document.getElementById('start-btn').innerText = "BOOSTER COMPLETED";
+                document.getElementById('completion-status').classList.remove('d-none');
+            }
         }
 
         function syncUI() {
             const hr = new Date().getHours();
             document.getElementById('greeting-text').innerText = hr < 12 ? "Good Morning! ☀️" : "Good Day! ☕";
-            const today = new Date().toISOString().split('T')[0];
-            onValue(ref(db, `results/${today}`), (s) => document.getElementById('global-count').innerText = s.exists() ? Object.keys(s.val()).length : 0);
+            onValue(ref(db, `results/${todayStr}`), (s) => document.getElementById('global-count').innerText = s.exists() ? Object.keys(s.val()).length : 0);
             loadChart();
         }
 
         window.initBooster = async () => {
-            const today = new Date().toISOString().split('T')[0];
-            const snap = await get(ref(db, `daily_packs/${today}`));
+            const snap = await get(ref(db, `daily_packs/${todayStr}`));
             if(!snap.exists()) return alert("No booster today!");
             currentPack = snap.val(); qKeys = Object.keys(currentPack.questions);
             document.getElementById('dashboard').style.display = 'none';
@@ -162,6 +184,9 @@
         }
 
         async function finishGame() {
+            // අද දින සඳහා වැඩ අවසන් බව සටහන් කිරීම
+            localStorage.setItem(`done_${session.id}`, todayStr);
+
             document.getElementById('game-view').style.display = 'none';
             document.getElementById('result-screen').style.display = 'block';
             const r = userResponses; const a1 = r[0].isCorrect, a2 = r[1].isCorrect, a3 = r[2].isCorrect;
@@ -173,8 +198,7 @@
             }
 
             const score = userResponses.filter(res => res.isCorrect).length * 10;
-            const today = new Date().toISOString().split('T')[0];
-            await set(ref(db, `results/${today}/${session.id}`), { name: session.user.name, score });
+            await set(ref(db, `results/${todayStr}/${session.id}`), { name: session.user.name, score });
             const resultData = currentPack.patterns[p];
             document.getElementById('result-msg').innerText = resultData.msg;
             document.getElementById('result-url').href = resultData.url;
