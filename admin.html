@@ -14,9 +14,10 @@
         .paper-card { background: white; border-radius: 20px; padding: 25px; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.05); text-align: center; border-bottom: 5px solid #ccc; }
         .paper-card.today { border-bottom-color: #28a745; }
         .date-box { background: #ff7f50; color: white; padding: 5px 15px; border-radius: 10px; font-weight: bold; display: inline-block; margin-bottom: 10px; }
-        #editor-page, #view-page { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 10000; overflow-y: auto; padding: 20px; }
-        .pattern-box { background: #fdfdfd; border: 1px solid #eee; border-radius: 15px; padding: 15px; margin-bottom: 10px; }
-        .pattern-label { font-size: 0.75rem; font-weight: bold; color: #666; text-transform: uppercase; }
+        #editor-page { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 10000; overflow-y: auto; padding: 20px; }
+        .logic-box { background: #f8f9fa; border-radius: 12px; padding: 12px; margin-bottom: 10px; border: 1px solid #dee2e6; }
+        .logic-label { font-weight: bold; font-size: 0.85rem; color: #444; }
+        .logic-desc { font-size: 0.75rem; color: #666; display: block; margin-bottom: 5px; }
     </style>
 </head>
 <body>
@@ -35,31 +36,26 @@
 </div>
 
 <div id="editor-page">
-    <div class="container" style="max-width: 900px;">
+    <div class="container" style="max-width: 1000px;">
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h3 class="fw-bold text-primary">Create Today Paper</h3>
+            <h3 class="fw-bold text-primary">Paper Editor</h3>
             <button class="btn-close" onclick="closeEditor()"></button>
         </div>
 
-        <div class="card p-3 border-0 shadow-sm rounded-4 mb-4 bg-light">
-            <label class="fw-bold small">SoundCloud Music URL</label>
-            <input type="text" id="music_url" class="form-control" placeholder="https://soundcloud.com/...">
-        </div>
-
         <div class="row">
-            <div class="col-lg-7">
-                <h5 class="fw-bold mb-3">Questions (Options 5)</h5>
+            <div class="col-lg-6">
+                <h5 class="fw-bold mb-3"><i class="fas fa-edit me-2"></i>Questions & Options</h5>
                 <div id="questions-container"></div>
             </div>
 
-            <div class="col-lg-5">
-                <h5 class="fw-bold mb-3 text-danger">Result Patterns (p1-p8)</h5>
-                <div id="patterns-container" style="max-height: 800px; overflow-y: auto;">
+            <div class="col-lg-6">
+                <h5 class="fw-bold mb-3"><i class="fas fa-cog me-2"></i>Result Logic Setup (හරි/වැරදි අනුව)</h5>
+                <div id="logic-container" style="max-height: 80vh; overflow-y: auto; padding-right: 5px;">
                     </div>
             </div>
         </div>
 
-        <button class="btn btn-success btn-lg w-100 rounded-pill fw-bold py-3 mt-4 mb-5" onclick="saveData()">PUBLISH PAPER NOW</button>
+        <button class="btn btn-success btn-lg w-100 rounded-pill fw-bold py-3 mt-4 mb-5 shadow" onclick="saveData()">PUBLISH PAPER</button>
     </div>
 </div>
 
@@ -81,76 +77,77 @@
     const db = getDatabase(app);
     const todayStr = new Date().toISOString().split('T')[0];
 
-    async function loadDashboard() {
-        const snap = await get(ref(db, 'daily_packs'));
-        const list = document.getElementById('paper-list'); list.innerHTML = "";
-        if(snap.exists()){
-            Object.keys(snap.val()).sort().reverse().forEach(date => {
-                const isToday = (date === todayStr);
-                list.innerHTML += `
-                <div class="col-md-4">
-                    <div class="paper-card ${isToday ? 'today' : ''}">
-                        <div class="date-box">${date}</div><br>
-                        <div class="paper-id">CHEM PAPER</div>
-                        <div class="mt-4">${isToday ? `<button class="btn btn-danger btn-sm w-100" onclick="deletePaper('${date}')">Delete</button>` : `<span class="text-muted">History</span>`}</div>
-                    </div>
-                </div>`;
-            });
-        }
-    }
+    const patternsMeta = [
+        {id: "p7", label: "හරි - හරි - හරි (RRR)", desc: "ප්‍රශ්න 3ම නිවැරදි විට"},
+        {id: "p4", label: "හරි - හරි - වැරදි (RRW)", desc: "පළමු දෙක හරි, අවසන් එක වැරදි විට"},
+        {id: "p5", label: "හරි - වැරදි - හරි (RWR)", desc: "පළමු හා අවසන් එක හරි විට"},
+        {id: "p1", label: "හරි - වැරදි - වැරදි (RWW)", desc: "පළමුවැන්න පමණක් හරි විට"},
+        {id: "p6", label: "වැරදි - හරි - හරි (WRR)", desc: "අවසන් දෙක පමණක් හරි විට"},
+        {id: "p2", label: "වැරදි - හරි - වැරදි (WRW)", desc: "දෙවැන්න පමණක් හරි විට"},
+        {id: "p3", label: "වැරදි - වැරදි - හරි (WWR)", desc: "අවසන් එක පමණක් හරි විට"},
+        {id: "p8", label: "වැරදි - වැරදි - වැරදි (WWW)", desc: "සියල්ල වැරදි විට"}
+    ];
 
-    window.openEditor = async function() {
-        const snap = await get(ref(db, `daily_packs/${todayStr}`));
-        if(snap.exists()) return alert("Delete existing paper first.");
+    window.openEditor = () => {
         document.getElementById('editor-page').style.display = 'block';
         setupForm();
     };
 
     function setupForm() {
         const qCont = document.getElementById('questions-container'); qCont.innerHTML = "";
-        for(let i=1; i<=3; i++) {
+        for(let i=1; i<=3; i++){
             qCont.innerHTML += `
             <div class="card p-3 border-0 shadow-sm rounded-4 mb-3">
-                <h6 class="fw-bold text-primary">Question ${i}</h6>
-                <textarea id="q${i}_t" class="form-control mb-2" placeholder="Text"></textarea>
-                <input type="text" id="q${i}_i" class="form-control mb-2" placeholder="Image URL">
+                <h6 class="fw-bold">ප්‍රශ්නය ${i}</h6>
+                <textarea id="q${i}_t" class="form-control mb-2" rows="2" placeholder="ප්‍රශ්නය ලියන්න"></textarea>
                 <div class="row g-2">
-                    ${[1,2,3,4,5].map(opt => `<div class="col-6"><input type="text" id="q${i}_o${opt}" class="form-control form-control-sm" placeholder="Opt ${opt}"></div>`).join('')}
+                    ${[1,2,3,4,5].map(o => `<div class="col-6"><input type="text" id="q${i}_o${o}" class="form-control form-control-sm" placeholder="පිළිතුර ${o}"></div>`).join('')}
                 </div>
-                <select id="q${i}_c" class="form-select mt-2"><option value="1">Ans 1</option><option value="2">Ans 2</option><option value="3">Ans 3</option><option value="4">Ans 4</option><option value="5">Ans 5</option></select>
+                <select id="q${i}_c" class="form-select mt-2 fw-bold text-success"><option value="1">නිවැරදි පිළිතුර: 1</option><option value="2">නිවැරදි පිළිතුර: 2</option><option value="3">නිවැරදි පිළිතුර: 3</option><option value="4">නිවැරදි පිළිතුර: 4</option><option value="5">නිවැරදි පිළිතුර: 5</option></select>
             </div>`;
         }
 
-        const pCont = document.getElementById('patterns-container'); pCont.innerHTML = "";
-        for(let i=1; i<=8; i++) {
-            pCont.innerHTML += `
-            <div class="pattern-box shadow-sm">
-                <div class="pattern-label text-primary">Pattern p${i}</div>
-                <input type="text" id="p${i}_m" class="form-control form-control-sm mb-1" placeholder="Result Message">
-                <input type="text" id="p${i}_u" class="form-control form-control-sm" placeholder="Video Link (YouTube)">
+        const lCont = document.getElementById('logic-container'); lCont.innerHTML = "";
+        patternsMeta.forEach(pm => {
+            lCont.innerHTML += `
+            <div class="logic-box shadow-sm">
+                <div class="logic-label text-primary">${pm.label}</div>
+                <span class="logic-desc">${pm.desc}</span>
+                <input type="text" id="${pm.id}_m" class="form-control form-control-sm mb-1" placeholder="පණිවිඩය (Message)">
+                <input type="text" id="${pm.id}_u" class="form-control form-control-sm" placeholder="වීඩියෝ ලින්ක් එක (URL)">
             </div>`;
-        }
+        });
     }
 
     window.saveData = async function() {
-        const pack = { music_url: document.getElementById('music_url').value, questions: {}, patterns: {} };
-        for(let i=1; i<=3; i++) {
+        const pack = { questions: {}, patterns: {} };
+        for(let i=1; i<=3; i++){
             pack.questions[`q${i}`] = {
                 text: document.getElementById(`q${i}_t`).value,
-                img: document.getElementById(`q${i}_i`).value,
                 options: [document.getElementById(`q${i}_o1`).value, document.getElementById(`q${i}_o2`).value, document.getElementById(`q${i}_o3`).value, document.getElementById(`q${i}_o4`).value, document.getElementById(`q${i}_o5`).value],
                 correct: document.getElementById(`q${i}_c`).value
             };
         }
-        for(let i=1; i<=8; i++) {
-            pack.patterns[`p${i}`] = { msg: document.getElementById(`p${i}_m`).value, url: document.getElementById(`p${i}_u`).value };
-        }
+        patternsMeta.forEach(pm => {
+            pack.patterns[pm.id] = { msg: document.getElementById(`${pm.id}_m`).value, url: document.getElementById(`${pm.id}_u`).value };
+        });
         await set(ref(db, `daily_packs/${todayStr}`), pack);
-        alert("Published!"); location.reload();
+        alert("Paper Published!"); location.reload();
     };
 
-    window.deletePaper = async (d) => { if(confirm("Delete?")) { await remove(ref(db, `daily_packs/${d}`)); location.reload(); } };
     window.closeEditor = () => document.getElementById('editor-page').style.display = 'none';
+    
+    async function loadDashboard() {
+        const snap = await get(ref(db, 'daily_packs'));
+        if(snap.exists()){
+            const list = document.getElementById('paper-list');
+            Object.keys(snap.val()).reverse().forEach(date => {
+                list.innerHTML += `<div class="col-md-4"><div class="paper-card"><div class="date-box">${date}</div><br><button class="btn btn-danger btn-sm mt-3" onclick="deletePaper('${date}')">Delete Paper</button></div></div>`;
+            });
+        }
+    }
+
+    window.deletePaper = async (d) => { if(confirm("Delete?")) { await remove(ref(db, `daily_packs/${d}`)); location.reload(); }};
     loadDashboard();
 </script>
 </body>
