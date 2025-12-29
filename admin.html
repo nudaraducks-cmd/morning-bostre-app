@@ -1,119 +1,97 @@
+@@ -1,206 +1,29 @@
+<!DOCTYPE html>
+<html lang="si">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard | Madawa Wijesingha</title>
-    <title>Morning Booster | Madawa Wijesingha</title>
+    <title>Advanced Admin | Madawa Wijesingha</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <style>
-        :root { --primary: #6f42c1; --bg: #f8f9fa; }
+        :root { --primary: #6f42c1; --bg: #f4f7f6; }
         body { background: var(--bg); font-family: 'Segoe UI', sans-serif; }
-        .header-bar { background: var(--primary); color: white; padding: 30px; border-radius: 0 0 30px 30px; margin-bottom: 20px; }
-        .q-card { background: white; border-radius: 15px; padding: 15px; margin-bottom: 15px; border: 1px solid #ddd; }
-        #editor-page { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 1000; overflow-y: auto; padding: 20px; }
-        :root { --bg: #0b0f1a; --accent: #00d2ff; --glass: rgba(255, 255, 255, 0.05); }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; min-height: 100vh; display: flex; flex-direction: column; }
-        .teacher-header { display: flex; align-items: center; justify-content: center; gap: 20px; padding: 40px 20px; background: linear-gradient(180deg, rgba(0,210,255,0.15), transparent); border-radius: 0 0 40px 40px; margin-bottom: 25px; }
-        .teacher-img { width: 90px; height: 90px; border-radius: 20px; border: 2px solid var(--accent); object-fit: cover; }
-        .glass-card { background: var(--glass); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); border-radius: 25px; padding: 25px; margin-bottom: 20px; }
-        .booster-btn { background: linear-gradient(135deg, #00d2ff, #3a7bd5); border: none; padding: 18px; border-radius: 20px; font-weight: 800; width: 100%; color: white; box-shadow: 0 8px 20px rgba(0,210,255,0.2); transition: 0.3s; }
-        .booster-btn:disabled { background: #444; color: #888; box-shadow: none; cursor: not-allowed; }
-        #game-view, #review-view { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 10000; padding: 20px; overflow-y: auto; }
-        .timer-circle { width: 65px; height: 65px; border: 3px solid var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-weight: bold; font-size: 1.4rem; color: var(--accent); }
-        .option-btn { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 16px; margin-bottom: 12px; border-radius: 15px; width: 100%; text-align: left; }
-        .option-btn.selected { background: var(--accent); font-weight: bold; color: #000; }
-        .badge-master { background: linear-gradient(45deg, #ffd700, #ffa500); color: #000; padding: 10px 20px; border-radius: 50px; font-weight: 800; display: inline-block; margin-top: 15px; animation: pop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        @keyframes pop { 0% { transform: scale(0); } 100% { transform: scale(1); } }
+        
+        /* Dashboard Cards */
+        .stat-card { background: white; border-radius: 15px; padding: 20px; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.05); transition: 0.3s; cursor: pointer; border-left: 5px solid #ccc; }
+        .stat-card.active { border-left-color: #28a745; }
+        .stat-card:hover { transform: translateY(-5px); }
+        
+        .header-bar { background: var(--primary); color: white; padding: 20px; border-radius: 0 0 30px 30px; margin-bottom: 30px; }
+        .admin-box { background: white; border-radius: 20px; padding: 25px; display: none; }
+        
+        .date-badge { background: #e9ecef; padding: 5px 12px; border-radius: 8px; font-weight: bold; font-size: 0.8rem; }
+        .btn-round { border-radius: 50px; padding: 10px 25px; font-weight: bold; }
     </style>
 </head>
 <body>
 
-<div id="dashboard-view">
-    <div class="header-bar text-center">
-        <h2 class="fw-bold">Booster පරිපාලක පුවරුව</h2>
-        <p id="today-status" class="small"></p>
-        <button id="add-btn" class="btn btn-light mt-2 fw-bold" onclick="openEditor()">+ අද දින ප්‍රශ්න ඇතුළත් කරන්න</button>
-    </div>
-    <div class="container" id="paper-list">
-        <h6 class="fw-bold text-muted mb-3">පෙර ප්‍රශ්න පත්‍ර (History)</h6>
-    </div>
+<div class="header-bar text-center">
+    <h3 class="fw-bold">Control Center</h3>
+    <p class="mb-0">Madawa Wijesingha Chemistry</p>
 </div>
-    <div class="content-wrapper">
-        <audio id="snd-correct" src="https://cdn.pixabay.com/audio/2021/08/04/audio_bbd134918e.mp3"></audio>
-        <audio id="snd-wrong" src="https://cdn.pixabay.com/audio/2022/03/10/audio_c030d35967.mp3"></audio>
 
-        <div class="teacher-header text-center">
-            <img src="ChatGPT Image Dec 28, 2025, 08_23_10 AM.png" class="teacher-img">
-            <div><h4 class="fw-bold mb-0">MADAWA WIJESINGHA</h4><div class="small text-accent">CHEMISTRY BOOSTER</div></div>
+<div class="container">
+    
+    <div id="dashboard-view">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h5 class="fw-bold">Scheduled Papers</h5>
+            <button class="btn btn-primary btn-round" onclick="showCreateMode()">
+                <i class="fas fa-plus me-2"></i>Update Today Question
+            </button>
         </div>
 
-<div id="editor-page">
-    <div class="container" style="max-width: 1000px;">
+        <div id="paper-list" class="row g-3">
+            <div class="col-12 text-center py-5">
+                <div class="spinner-border text-primary"></div>
+            </div>
+<div id="dashboard-view" class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4 p-3 bg-white rounded-4 shadow-sm">
+        <div>
+            <h5 class="fw-bold mb-0">Daily Booster Manager</h5>
+            <small class="text-muted">Manage your daily chemistry papers</small>
+        </div>
+        <button class="btn btn-primary px-4 fw-bold rounded-pill" onclick="openEditor()">
+            <i class="fas fa-plus-circle me-2"></i>Update Today Question
+        </button>
+    </div>
+
+    <div id="editor-view" class="admin-box shadow-sm mb-5">
         <div class="d-flex justify-content-between mb-4">
-            <h3 class="fw-bold text-primary">නව ප්‍රශ්න පත්‍රය</h3>
-            <button class="btn-close" onclick="closeEditor()"></button>
-        <div id="login-screen" class="container" style="max-width: 400px;">
-            <div class="glass-card text-center">
-                <h5 class="fw-bold mb-4">Student Login</h5>
-                <input type="text" id="log_id" class="form-control mb-3 bg-dark text-white border-0 py-3 rounded-pill text-center" placeholder="ID Number">
-                <input type="password" id="log_pass" class="form-control mb-4 bg-dark text-white border-0 py-3 rounded-pill text-center" placeholder="Password">
-                <button class="btn btn-primary w-100 py-3 rounded-pill fw-bold" onclick="handleLogin()">LOGIN</button>
+            <h5 class="fw-bold text-primary" id="editor-title">Create Daily Pack</h5>
+            <button class="btn-close" onclick="hideEditor()"></button>
+    <div id="paper-list" class="row g-3">
+        </div>
+</div>
+
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <label class="small fw-bold">Target Date</label>
+                <input type="date" id="pack_date" class="form-control" readonly>
+            </div>
+            <div class="col-md-4">
+                <label class="small fw-bold">Seconds per Q</label>
+                <input type="number" id="timer_sec" class="form-control" value="60">
+            </div>
+            <div class="col-md-4">
+                <label class="small fw-bold">Music URL</label>
+                <input type="text" id="music_url" class="form-control" placeholder="SoundCloud link">
+<div id="editor-view" class="container mt-4" style="display:none;">
+    <div class="card border-0 shadow-lg rounded-4">
+        <div class="card-header bg-primary text-white p-4 rounded-top-4">
+            <div class="d-flex justify-content-between">
+                <h4 class="fw-bold mb-0">Create Today's Booster</h4>
+                <button class="btn-close btn-close-white" onclick="closeEditor()"></button>
             </div>
         </div>
 
-        <div class="card p-3 mb-4 border-0 shadow-sm bg-light">
-            <label class="fw-bold small mb-2">SoundCloud Music URL (අද දින පසුබිම් සංගීතය)</label>
-            <input type="text" id="music_url" class="form-control" placeholder="https://soundcloud.com/...">
-        <div id="dashboard" class="container" style="display:none; max-width: 600px;">
-            <div class="glass-card">
-                <h5 class="fw-bold mb-1" id="greeting-text">...</h5>
-                <p id="user-name" class="text-white-50 small mb-4"></p>
-                
-                <p id="completion-status" class="text-warning small mb-2 d-none fw-bold">⚠️ You have already completed today's booster!</p>
-                <button id="start-btn" class="booster-btn mb-4" onclick="initBooster()">START TODAY BOOSTER</button>
-                
-                <div class="d-flex justify-content-between align-items-center">
-                    <span class="stat-badge"><i class="fas fa-fire me-1 text-warning"></i> Active Streak</span>
-                    <span class="stat-badge"><i class="fas fa-users me-1"></i> <span id="global-count">0</span> Played Today</span>
-                </div>
-            </div>
-            <div class="glass-card"><canvas id="progressChart" height="180"></canvas></div>
-        </div>
+        <div id="q-inputs"></div>
 
-        <div class="row">
-            <div class="col-md-6" id="q-container"></div>
-            <div class="col-md-6" id="p-container"></div>
-        <div id="game-view">
-            <div class="container py-3">
-                <div class="timer-circle" id="timer">60</div>
-                <div id="q-box">
-                    <h5 id="q-text" class="mb-4 text-center fw-bold"></h5>
-                    <div id="q-img-box" class="mb-4 text-center"></div>
-                    <div id="options-box"></div>
-                </div>
-                <button id="next-btn" class="btn btn-primary w-100 py-3 rounded-pill mt-4 fw-bold" onclick="nextQuestion()">NEXT QUESTION</button>
-            </div>
-        </div>
-
-        <button class="btn btn-success btn-lg w-100 mt-4 py-3 fw-bold mb-5 shadow" onclick="saveData()">ප්‍රශ්න පත්‍රය පල කරන්න (PUBLISH)</button>
-        <div id="result-screen" class="container py-5 text-center" style="display:none;">
-            <div class="glass-card py-5">
-                <div id="badge-container"></div>
-                <h2 class="text-accent fw-bold mb-3 mt-3">COMPLETED!</h2>
-                <p id="result-msg" class="mb-4 px-3 fw-bold"></p>
-                <a id="result-url" href="#" target="_blank" class="btn btn-success btn-lg rounded-pill px-5 fw-bold mb-3 w-100 shadow">Watch Explanation</a>
-                <button class="btn btn-outline-info rounded-pill w-100 fw-bold mb-3" onclick="showReview()">Review Answers</button>
-                <button class="btn btn-link text-white-50 text-decoration-none" onclick="location.reload()">Back to Dashboard</button>
-            </div>
-        </div>
-
-        <div id="review-view">
-            <div class="container py-3">
-                <h4 class="fw-bold text-accent mb-4">Review Answers</h4>
-                <div id="review-list"></div>
-                <button class="btn btn-primary w-100 py-3 rounded-pill mt-4" onclick="location.reload()">Close</button>
-            </div>
+        <div class="mt-4 d-flex gap-2">
+            <button class="btn btn-success btn-round w-100" onclick="savePack()">PUBLISH PAPER</button>
+            <button class="btn btn-light btn-round w-100" onclick="hideEditor()">CANCEL</button>
+        <div class="card-body p-4">
+            <div id="q-inputs"></div> 
+            <button class="btn btn-success w-100 py-3 fw-bold rounded-pill mt-3" onclick="savePack()">PUBLISH NOW</button>
         </div>
     </div>
 </div>
@@ -122,208 +100,127 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getDatabase, ref, get, set, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-    const firebaseConfig = { apiKey: "AIzaSyDMjYdugjdCiJG9uc9Ju_7n0qkljAiC9FE", authDomain: "morning-boost-48c64.firebaseapp.com", databaseURL: "https://morning-boost-48c64-default-rtdb.firebaseio.com", projectId: "morning-boost-48c64", storageBucket: "morning-boost-48c64.firebasestorage.app", messagingSenderId: "140528602458", appId: "1:140528602458:web:34e14db5a5d93d1db13763" };
-    const app = initializeApp(firebaseConfig); const db = getDatabase(app);
+    const firebaseConfig = {
+        apiKey: "AIzaSyDMjYdugjdCiJG9uc9Ju_7n0qkljAiC9FE",
+        authDomain: "morning-boost-48c64.firebaseapp.com",
+        databaseURL: "https://morning-boost-48c64-default-rtdb.firebaseio.com",
+        projectId: "morning-boost-48c64",
+        storageBucket: "morning-boost-48c64.firebasestorage.app",
+        messagingSenderId: "140528602458",
+        appId: "1:140528602458:web:34e14db5a5d93d1db13763"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
     const todayStr = new Date().toISOString().split('T')[0];
 
-    // Smart Enter Logic
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' && e.target.tagName !== 'BUTTON') {
-            e.preventDefault();
-            const inputs = Array.from(document.querySelectorAll('input, textarea, select'));
-            const idx = inputs.indexOf(e.target);
-            if (idx > -1 && idx < inputs.length - 1) inputs[idx + 1].focus();
-
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, get, set, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-
-        const firebaseConfig = { apiKey: "AIzaSyDMjYdugjdCiJG9uc9Ju_7n0qkljAiC9FE", authDomain: "morning-boost-48c64.firebaseapp.com", databaseURL: "https://morning-boost-48c64-default-rtdb.firebaseio.com", projectId: "morning-boost-48c64", storageBucket: "morning-boost-48c64.firebasestorage.app", messagingSenderId: "140528602458", appId: "1:140528602458:web:34e14db5a5d93d1db13763" };
-        const app = initializeApp(firebaseConfig); const db = getDatabase(app);
-        const session = JSON.parse(localStorage.getItem('mb_session'));
-        const todayStr = new Date().toISOString().split('T')[0];
-        
-        let currentPack, qKeys, currentQIndex = 0, userResponses = [], selectedIdx = null, timerInterval;
-
-        // Smart Enter Logic
-        document.addEventListener('keydown', (e) => {
-            if(e.key === 'Enter') {
-                if(document.activeElement.id === 'log_id') document.getElementById('log_pass').focus();
-                else if(document.activeElement.id === 'log_pass') handleLogin();
-            }
-        });
-
-        window.handleLogin = async () => {
-            const id = document.getElementById('log_id').value.trim();
-            const pass = document.getElementById('log_pass').value.trim();
-            const snap = await get(ref(db, `students/${id}`));
-            if(snap.exists() && snap.val().password === pass){
-                localStorage.setItem('mb_session', JSON.stringify({user: snap.val(), id: id}));
-                location.reload();
-            } else alert("Invalid Login!");
-        };
-
-        if(session) {
-            document.getElementById('login-screen').style.display = 'none';
-            document.getElementById('dashboard').style.display = 'block';
-            document.getElementById('user-name').innerText = session.user.name;
-            checkCompletion();
-            syncUI();
-        }
-    });
-
-    window.openEditor = async () => {
-        // අද දිනට දැනටමත් පේපර් එකක් තියෙනවාද කියා පරීක්ෂා කිරීම
-        const snap = await get(ref(db, `daily_packs/${todayStr}`));
-        if(snap.exists()) {
-            alert("අද දිනට දැනටමත් ප්‍රශ්න පත්‍රයක් පල කර ඇත! අලුත් එකක් දැමීමට පෙර පරණ එක ඉවත් කරන්න.");
-            return;
-
-        // --- නව මනෝවිද්‍යාත්මක ආරක්ෂාව (Once a day) ---
-        function checkCompletion() {
-            const lastDone = localStorage.getItem(`done_${session.id}`);
-            if(lastDone === todayStr) {
-                document.getElementById('start-btn').disabled = true;
-                document.getElementById('start-btn').innerText = "BOOSTER COMPLETED";
-                document.getElementById('completion-status').classList.remove('d-none');
-            }
-        }
-        document.getElementById('editor-page').style.display = 'block';
-        setupForm();
-    };
-
-    function setupForm() {
-        const qc = document.getElementById('q-container'); qc.innerHTML = "<h5>Questions</h5>";
-        for(let i=1; i<=3; i++){
-            qc.innerHTML += `<div class="q-card"><h6>ප්‍රශ්නය ${i}</h6><textarea id="q${i}_t" class="form-control mb-2" placeholder="ප්‍රශ්නය"></textarea><input id="q${i}_i" class="form-control mb-2" placeholder="Image URL (ඇත්නම්)"><div class="row g-1">${[1,2,3,4,5].map(o=>`<div class="col-6"><input id="q${i}_o${o}" class="form-control form-control-sm mb-1" placeholder="Option ${o}"></div>`).join('')}</div><select id="q${i}_c" class="form-select mt-2"><option value="1">Answer 1</option><option value="2">Answer 2</option><option value="3">Answer 3</option><option value="4">Answer 4</option><option value="5">Answer 5</option></select></div>`;
-
-        function syncUI() {
-            const hr = new Date().getHours();
-            document.getElementById('greeting-text').innerText = hr < 12 ? "Good Morning! ☀️" : "Good Day! ☕";
-            onValue(ref(db, `results/${todayStr}`), (s) => document.getElementById('global-count').innerText = s.exists() ? Object.keys(s.val()).length : 0);
-            loadChart();
-        }
-        const pc = document.getElementById('p-container'); pc.innerHTML = "<h5>Patterns</h5>";
-        const ps = ["p7 (RRR)", "p4 (RRW)", "p5 (RWR)", "p1 (RWW)", "p6 (WRR)", "p2 (WRW)", "p3 (WWR)", "p8 (WWW)"];
-        ps.forEach((p) => {
-            const id = p.split(' ')[0];
-            pc.innerHTML += `<div class="card p-2 mb-2 shadow-sm border-0 bg-light"><h6>${p}</h6><input id="${id}_m" class="form-control form-control-sm mb-1" placeholder="Message"><input id="${id}_u" class="form-control form-control-sm" placeholder="Video URL"></div>`;
-        });
+    // Initialize Questions UI
+    const qContainer = document.getElementById('q-inputs');
+    for(let i=1; i<=3; i++) {
+        qContainer.innerHTML += `
+        <div class="p-3 border rounded-4 mb-3 bg-light">
+            <h6 class="fw-bold small text-secondary">Question ${i}</h6>
+            <input type="text" id="q${i}_text" class="form-control mb-2" placeholder="Question text">
+            <input type="text" id="q${i}_img" class="form-control mb-2 small" placeholder="Image URL (optional)">
+            <div class="row g-2">
+                <div class="col-6"><input type="text" id="q${i}_o1" class="form-control form-control-sm" placeholder="Option 1"></div>
+                <div class="col-6"><input type="text" id="q${i}_o2" class="form-control form-control-sm" placeholder="Option 2"></div>
+                <div class="col-6"><input type="text" id="q${i}_o3" class="form-control form-control-sm" placeholder="Option 3"></div>
+                <div class="col-6"><input type="text" id="q${i}_o4" class="form-control form-control-sm" placeholder="Option 4"></div>
+            </div>
+            <select id="q${i}_corr" class="form-select form-select-sm mt-2"><option value="1">Answer 1</option><option value="2">Answer 2</option><option value="3">Answer 3</option><option value="4">Answer 4</option></select>
+        </div>`;
     }
-
-    window.saveData = async () => {
-        const music = document.getElementById('music_url').value;
-        const pack = { music_url: music, questions: {}, patterns: {} };
-        for(let i=1; i<=3; i++){
-            pack.questions[`q${i}`] = { 
-                text: document.getElementById(`q${i}_t`).value, 
-                img: document.getElementById(`q${i}_i`).value, 
-                options: [1,2,3,4,5].map(o=>document.getElementById(`q${i}_o${o}`).value), 
-                correct: document.getElementById(`q${i}_c`).value 
-            };
-
-        window.initBooster = async () => {
-            const snap = await get(ref(db, `daily_packs/${todayStr}`));
-            if(!snap.exists()) return alert("No booster today!");
-            currentPack = snap.val(); qKeys = Object.keys(currentPack.questions);
-            document.getElementById('dashboard').style.display = 'none';
-            document.getElementById('game-view').style.display = 'block';
-            loadQuestion();
-        };
-
-        function loadQuestion() {
-            if(currentQIndex >= qKeys.length) return finishGame();
-            selectedIdx = null; const q = currentPack.questions[qKeys[currentQIndex]];
-            document.getElementById('q-text').innerText = q.text;
-            document.getElementById('q-img-box').innerHTML = q.img ? `<img src="${q.img}" class="img-fluid rounded-4 mb-3" style="max-height:200px">` : "";
-            const box = document.getElementById('options-box'); box.innerHTML = "";
-            q.options.forEach((opt, i) => { if(opt) box.innerHTML += `<button class="option-btn" onclick="sel(${i+1}, ${q.correct})">${opt}</button>`; });
-            startTimer(60);
-        }
-        ["p1","p2","p3","p4","p5","p6","p7","p8"].forEach(id => {
-            pack.patterns[id] = { msg: document.getElementById(`${id}_m`).value, url: document.getElementById(`${id}_u`).value };
-        });
-
-        await set(ref(db, `daily_packs/${todayStr}`), pack);
-        alert("සාර්ථකව පල කරන ලදී!"); location.reload();
-    };
-        window.sel = (i, corr) => {
-            selectedIdx = i; const isCorrect = (i == corr);
-            const aud = document.getElementById(isCorrect ? 'snd-correct' : 'snd-wrong');
-            aud.currentTime = 0; aud.play();
-            document.querySelectorAll('.option-btn').forEach((b, idx) => b.classList.toggle('selected', (idx+1)==i));
-        };
-
-    window.closeEditor = () => document.getElementById('editor-page').style.display = 'none';
-        window.nextQuestion = () => {
-            if(selectedIdx === null) return alert("Select an answer!");
-            userResponses.push({ selected: selectedIdx, isCorrect: (selectedIdx == currentPack.questions[qKeys[currentQIndex]].correct) });
-            currentQIndex++; clearInterval(timerInterval); loadQuestion();
-        };
 
     async function loadDashboard() {
         const snap = await get(ref(db, 'daily_packs'));
-        const list = document.getElementById('paper-list');
-        const status = document.getElementById('today-status');
-        
-        if(snap.exists()){
+        const container = document.getElementById('paper-list');
+        container.innerHTML = "";
+
+        if(snap.exists()) {
             const data = snap.val();
-            status.innerText = data[todayStr] ? "අද දින ප්‍රශ්න පත්‍රය සක්‍රීයයි ✅" : "අද දින සඳහා තවම ප්‍රශ්න පත්‍රයක් ඇතුළත් කර නැත ⚠️";
-        function startTimer(s) {
-            let t = s; const el = document.getElementById('timer');
-            timerInterval = setInterval(() => { t--; el.innerText = t; if(t <= 0){ clearInterval(timerInterval); nextQuestion(); } }, 1000);
-        }
+            const sortedDates = Object.keys(data).sort().reverse();
 
-        async function finishGame() {
-            // අද දින සඳහා වැඩ අවසන් බව සටහන් කිරීම
-            localStorage.setItem(`done_${session.id}`, todayStr);
-
-            document.getElementById('game-view').style.display = 'none';
-            document.getElementById('result-screen').style.display = 'block';
-            const r = userResponses; const a1 = r[0].isCorrect, a2 = r[1].isCorrect, a3 = r[2].isCorrect;
-            let p = (a1 && !a2 && !a3) ? "p1" : (!a1 && a2 && !a3) ? "p2" : (!a1 && !a2 && a3) ? "p3" : (a1 && a2 && !a3) ? "p4" : (a1 && !a2 && a3) ? "p5" : (!a1 && a2 && a3) ? "p6" : (a1 && a2 && a3) ? "p7" : "p8";
-
-            Object.keys(data).reverse().forEach(date => {
-                list.innerHTML += `<div class="card p-3 mb-2 d-flex flex-row justify-content-between align-items-center border-0 shadow-sm">
-                    <span class="fw-bold"><i class="far fa-calendar-alt me-2"></i>${date}</span>
-                    <button class="btn btn-danger btn-sm rounded-pill" onclick="deletePaper('${date}')">Delete</button>
+            sortedDates.forEach(date => {
+                const isToday = date === todayStr;
+                const isPast = date < todayStr;
+                
+                container.innerHTML += `
+                <div class="col-md-6 col-lg-4">
+                    <div class="stat-card ${isToday ? 'active' : ''}">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <span class="date-badge">${date}</span>
+                            ${isToday ? '<span class="badge bg-success">LIVE</span>' : ''}
+                        </div>
+                        <h6 class="fw-bold mb-3">Booster Paper #1</h6>
+                        <div class="d-flex gap-2">
+                            ${isToday ? `<button class="btn btn-sm btn-danger w-100" onclick="deletePaper('${date}')">Delete to Change</button>` : 
+                            (isPast ? `<button class="btn btn-sm btn-secondary w-100" disabled>Locked (Past)</button>` : '')}
+                        </div>
+                    </div>
                 </div>`;
-            if(a1 && a2 && a3) {
-                confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-                document.getElementById('badge-container').innerHTML = `<div class="badge-master"><i class="fas fa-crown me-2"></i> MASTER OF CHEMISTRY</div>`;
-            }
-
-            const score = userResponses.filter(res => res.isCorrect).length * 10;
-            await set(ref(db, `results/${todayStr}/${session.id}`), { name: session.user.name, score });
-            const resultData = currentPack.patterns[p];
-            document.getElementById('result-msg').innerText = resultData.msg;
-            document.getElementById('result-url').href = resultData.url;
-        }
-
-        window.showReview = () => {
-            document.getElementById('result-screen').style.display = 'none';
-            document.getElementById('review-view').style.display = 'block';
-            const list = document.getElementById('review-list'); list.innerHTML = "";
-            userResponses.forEach((res, i) => {
-                const q = currentPack.questions[qKeys[i]];
-                list.innerHTML += `<div class="glass-card mb-2 ${res.isCorrect ? 'border-success' : 'border-danger'}"><p class="small mb-1">Q${i+1}: ${q.text}</p><div class="small fw-bold ${res.isCorrect ? 'text-success' : 'text-danger'}">Correct: ${q.options[q.correct-1]}</div></div>`;
             });
         } else {
-            status.innerText = "පද්ධතියේ තවම ප්‍රශ්න පත්‍ර කිසිවක් නැත.";
-        };
-
-        async function loadChart() {
-            const snap = await get(ref(db, `results`)); if(!snap.exists()) return;
-            const dates = Object.keys(snap.val()).sort().slice(-7);
-            const scores = dates.map(d => snap.val()[d][session.id]?.score || 0);
-            new Chart(document.getElementById('progressChart'), { type: 'line', data: { labels: dates, datasets: [{ data: scores, borderColor: '#00d2ff', backgroundColor: 'rgba(0,210,255,0.1)', fill: true, tension: 0.4 }] }, options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, max: 35 } } } });
+            container.innerHTML = `<div class="text-center text-muted py-5">No papers found. Create one for today!</div>`;
         }
     }
-    
-    window.deletePaper = async (d) => { if(confirm(`${d} දින පේපර් එක ඉවත් කරන්නද?`)) { await remove(ref(db, `daily_packs/${d}`)); location.reload(); }};
+
+    window.showCreateMode = async function() {
+        const snap = await get(ref(db, `daily_packs/${todayStr}`));
+        if(snap.exists()) {
+            alert("අද දිනට දැනටමත් පේපර් එකක් දමා ඇත. වෙනස් කිරීමට අවශ්‍ය නම් එය මුලින්ම Delete කරන්න.");
+            return;
+        }
+        document.getElementById('pack_date').value = todayStr;
+        document.getElementById('dashboard-view').style.display = 'none';
+        document.getElementById('editor-view').style.display = 'block';
+    };
+
+    window.hideEditor = () => {
+        document.getElementById('dashboard-view').style.display = 'block';
+        document.getElementById('editor-view').style.display = 'none';
+    };
+
+    window.savePack = async function() {
+        const date = document.getElementById('pack_date').value;
+        const pack = {
+            timer_sec: document.getElementById('timer_sec').value,
+            music_url: document.getElementById('music_url').value,
+            questions: {},
+            patterns: { // Default result patterns
+                p1:{msg:"Good!",url:"#"}, p2:{msg:"Good!",url:"#"}, p3:{msg:"Good!",url:"#"}, p4:{msg:"Good!",url:"#"},
+                p5:{msg:"Good!",url:"#"}, p6:{msg:"Good!",url:"#"}, p7:{msg:"Good!",url:"#"}, p8:{msg:"Good!",url:"#"}
+            }
+        };
+
+        for(let i=1; i<=3; i++) {
+            pack.questions[`q${i}`] = {
+                text: document.getElementById(`q${i}_text`).value,
+                img: document.getElementById(`q${i}_img`).value,
+                options: [
+                    document.getElementById(`q${i}_o1`).value,
+                    document.getElementById(`q${i}_o2`).value,
+                    document.getElementById(`q${i}_o3`).value,
+                    document.getElementById(`q${i}_o4`).value
+                ],
+                correct: document.getElementById(`q${i}_corr`).value
+            };
+        }
+
+        await set(ref(db, `daily_packs/${date}`), pack);
+        alert("Paper Published Successfully!");
+        location.reload();
+    };
+
+    window.deletePaper = async function(date) {
+        if(confirm(`ඔබට විශ්වාසද ${date} පේපර් එක මකා දැමීමට අවශ්‍ය බව?`)) {
+            await remove(ref(db, `daily_packs/${date}`));
+            location.reload();
+        }
+    };
+
     loadDashboard();
 </script>
-    </script>
 </body>
 </html>
