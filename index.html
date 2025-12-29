@@ -17,6 +17,7 @@
         .teacher-header { display: flex; align-items: center; justify-content: center; gap: 20px; padding: 40px 20px; background: linear-gradient(180deg, rgba(0,210,255,0.15), transparent); border-radius: 0 0 40px 40px; margin-bottom: 25px; }
         .teacher-img { width: 90px; height: 90px; border-radius: 20px; border: 2px solid var(--accent); object-fit: cover; }
         .version-tag { font-size: 0.65rem; color: rgba(255,255,255,0.3); letter-spacing: 1px; margin-top: 5px; font-weight: bold; }
+        .powered-tag { font-size: 0.55rem; color: var(--accent); opacity: 0.6; margin-top: 2px; text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px; }
         
         /* Glass Card */
         .glass-card { background: var(--glass); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); border-radius: 25px; padding: 25px; margin-bottom: 20px; }
@@ -33,6 +34,9 @@
         .review-card { background: rgba(255,255,255,0.03); border-radius: 20px; padding: 15px; margin-bottom: 15px; border-left: 5px solid transparent; }
         .review-card.correct { border-left-color: #28a745; }
         .review-card.wrong { border-left-color: #dc3545; }
+
+        /* Result Image */
+        .result-img { width: 100%; max-width: 250px; border-radius: 20px; margin-bottom: 20px; border: 2px solid var(--accent); box-shadow: 0 0 15px rgba(0, 210, 255, 0.2); }
 
         /* --- Flashcard Styling --- */
         .flash-section { margin-top: 30px; }
@@ -119,7 +123,8 @@
             <div>
                 <h4 class="fw-bold mb-0">MADAWA WIJESINGHA</h4>
                 <div class="small text-accent">CHEMISTRY BOOSTER</div>
-                <div class="version-tag">MORNING BOOSTER v1.4</div>
+                <div class="version-tag">MORNING BOOSTER v1.2</div>
+                <div class="powered-tag">Powered by Nudara Concepts</div>
             </div>
         </div>
 
@@ -165,6 +170,7 @@
 
         <div id="result-screen" class="container py-5 text-center" style="display:none;">
             <div class="glass-card py-5">
+                <img src="scene_5.png" class="result-img" alt="Completed" onerror="this.style.display='none'">
                 <h2 class="text-accent fw-bold mb-3">COMPLETED!</h2>
                 <p id="result-msg" class="mb-4 px-3 fw-bold"></p>
                 <a id="result-url" href="#" target="_blank" class="btn btn-success btn-lg rounded-pill px-5 fw-bold mb-3 w-100 shadow">Watch Explanation</a>
