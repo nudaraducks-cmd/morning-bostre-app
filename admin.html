@@ -7,168 +7,407 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        :root { --primary: #6f42c1; --bg: #f4f7f6; }
-        body { background: var(--bg); font-family: 'Segoe UI', sans-serif; }
-        .stat-card { background: white; border-radius: 15px; padding: 20px; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.05); transition: 0.3s; border-left: 5px solid #ccc; }
-        .stat-card.active { border-left-color: #28a745; }
-        .header-bar { background: var(--primary); color: white; padding: 20px; border-radius: 0 0 30px 30px; margin-bottom: 30px; }
-        .admin-box { background: white; border-radius: 20px; padding: 25px; display: none; }
-        .btn-round { border-radius: 50px; padding: 10px 25px; font-weight: bold; }
-        .pattern-box { background: #f8f9fa; border-radius: 12px; padding: 15px; margin-bottom: 10px; border: 1px solid #dee2e6; }
-        .pattern-label { font-size: 0.8rem; font-weight: bold; color: #6f42c1; margin-bottom: 5px; display: block; }
+        :root { --primary: #6f42c1; --bg: #0f172a; --card: #1e293b; --accent: #00d2ff; }
+        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; }
+        .sidebar { background: var(--card); min-height: 100vh; padding: 20px; border-right: 1px solid rgba(255,255,255,0.1); }
+        .nav-link { color: rgba(255,255,255,0.7); padding: 12px; border-radius: 10px; margin-bottom: 5px; transition: 0.3s; cursor: pointer; }
+        .nav-link:hover, .nav-link.active { background: var(--accent); color: #000; font-weight: bold; }
+        .glass-card { background: var(--card); border-radius: 20px; padding: 25px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 20px; }
+        .form-control, .form-select { background: #0f172a; border: 1px solid #334155; color: white; border-radius: 10px; padding: 10px; }
+        .form-control:focus, .form-select:focus { background: #0f172a; color: white; border-color: var(--accent); box-shadow: none; }
+        .btn-primary { background: var(--accent); border: none; color: #000; font-weight: bold; border-radius: 10px; padding: 10px 20px; }
+        .q-box { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 15px; padding: 20px; margin-bottom: 20px; }
+        .pattern-label { font-size: 0.8rem; font-weight: bold; color: var(--accent); margin-bottom: 5px; display: block; }
+        #auth-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 9999; display: flex; align-items: center; justify-content: center; }
+        .table { color: white; }
+        .stat-val { font-size: 2rem; font-weight: bold; color: var(--accent); }
+        .progress { height: 10px; background: #334155; }
     </style>
 </head>
 <body>
 
-<div class="header-bar text-center">
-    <h3 class="fw-bold text-uppercase">Control Center</h3>
-    <p class="mb-0">Madawa Wijesingha Chemistry Booster</p>
-</div>
-
-<div class="container">
-    <div id="dashboard-view">
-        <div class="d-flex justify-content-between align-items-center mb-4 p-3 bg-white rounded-4 shadow-sm">
-            <div><h5 class="fw-bold mb-0">Daily Booster Manager</h5></div>
-            <button class="btn btn-primary btn-round" onclick="showCreateMode()"><i class="fas fa-plus-circle me-2"></i>Update Today Question</button>
-        </div>
-        <div id="paper-list" class="row g-3"></div>
-    </div>
-
-    <div id="editor-view" class="admin-box shadow-lg mb-5">
-        <div class="d-flex justify-content-between mb-4">
-            <h4 class="fw-bold text-primary">Create Today's Booster</h4>
-            <button class="btn-close" onclick="hideEditor()"></button>
-        </div>
-
-        <div class="row mb-4">
-            <div class="col-md-4"><label class="small fw-bold">දිනය (Date)</label><input type="date" id="pack_date" class="form-control" readonly></div>
-            <div class="col-md-4"><label class="small fw-bold">කාලය (Seconds)</label><input type="number" id="timer_sec" class="form-control" value="60"></div>
-            <div class="col-md-4"><label class="small fw-bold">සංගීතය (Music URL)</label><input type="text" id="music_url" class="form-control"></div>
-        </div>
-
-        <h6 class="fw-bold mb-3 text-secondary border-bottom pb-2">1. ප්‍රශ්න ඇතුළත් කරන්න (Questions)</h6>
-        <div id="q-inputs"></div>
-
-        <h6 class="fw-bold mb-3 text-secondary border-bottom pb-2 mt-4">2. ප්‍රතිඵල අනුව පණිවිඩ සහ වීඩියෝ (Result Patterns)</h6>
-        <div class="row" id="p-inputs"></div>
-
-        <div class="mt-4 d-flex gap-2">
-            <button class="btn btn-success btn-round w-100 py-3" onclick="savePack()">PUBLISH PAPER</button>
-            <button class="btn btn-light btn-round w-100 py-3" onclick="hideEditor()">CANCEL</button>
+    <!-- Simple Login Guard -->
+    <div id="auth-screen">
+        <div class="glass-card text-center" style="width: 350px;">
+            <i class="fas fa-user-shield fa-3x text-info mb-3"></i>
+            <h4 class="fw-bold">Admin Access</h4>
+            <p class="text-white-50 small mb-4">Master PIN එක ඇතුළත් කරන්න</p>
+            <input type="password" id="admin-pin" class="form-control mb-3 text-center" placeholder="••••">
+            <button class="btn btn-primary w-100" onclick="checkAuth()">පද්ධතියට ඇතුළු වන්න</button>
         </div>
     </div>
-</div>
 
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, get, set, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-
-    const firebaseConfig = { apiKey: "AIzaSyDMjYdugjdCiJG9uc9Ju_7n0qkljAiC9FE", authDomain: "morning-boost-48c64.firebaseapp.com", databaseURL: "https://morning-boost-48c64-default-rtdb.firebaseio.com", projectId: "morning-boost-48c64" };
-    const app = initializeApp(firebaseConfig); const db = getDatabase(app);
-    const todayStr = new Date().toISOString().split('T')[0];
-
-    // Q inputs generator
-    const qContainer = document.getElementById('q-inputs');
-    for(let i=1; i<=3; i++) {
-        qContainer.innerHTML += `
-        <div class="p-3 border rounded-4 mb-3 bg-light">
-            <h6 class="fw-bold small">ප්‍රශ්නය ${i}</h6>
-            <input type="text" id="q${i}_text" class="form-control mb-2" placeholder="ප්‍රශ්නය මෙතැන ලියන්න">
-            <input type="text" id="q${i}_img" class="form-control mb-2" placeholder="රූපරාමුවේ ලින්ක් එක (තිබේ නම්)">
-            <div class="row g-2">
-                <div class="col-6"><input type="text" id="q${i}_o1" class="form-control" placeholder="පිළිතුර 1"></div>
-                <div class="col-6"><input type="text" id="q${i}_o2" class="form-control" placeholder="පිළිතුර 2"></div>
-                <div class="col-6"><input type="text" id="q${i}_o3" class="form-control" placeholder="පිළිතුර 3"></div>
-                <div class="col-6"><input type="text" id="q${i}_o4" class="form-control" placeholder="පිළිතුර 4"></div>
+    <div class="container-fluid" id="admin-content" style="display:none;">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-2 sidebar d-none d-md-block">
+                <div class="text-center mb-5">
+                    <h5 class="fw-bold mb-0">BOOSTER</h5>
+                    <small class="text-accent">Control Panel</small>
+                </div>
+                <nav class="nav flex-column">
+                    <a class="nav-link active" onclick="showSection('upload')"><i class="fas fa-plus-circle me-2"></i> Update Booster</a>
+                    <a class="nav-link" onclick="showSection('papers')"><i class="fas fa-file-alt me-2"></i> Paper Manager</a>
+                    <a class="nav-link" onclick="showSection('results')"><i class="fas fa-chart-line me-2"></i> Live Results</a>
+                    <a class="nav-link" onclick="showSection('students')"><i class="fas fa-users me-2"></i> Students</a>
+                    <a class="nav-link" onclick="showSection('analyze')"><i class="fas fa-microscope me-2"></i> Analyze</a>
+                    <hr class="text-white-50">
+                    <a class="nav-link text-danger" onclick="location.reload()"><i class="fas fa-power-off me-2"></i> Logout</a>
+                </nav>
             </div>
-            <select id="q${i}_corr" class="form-select mt-2"><option value="1">නිවැරදි පිළිතුර 1</option><option value="2">නිවැරදි පිළිතුර 2</option><option value="3">නිවැරදි පිළිතුර 3</option><option value="4">නිවැරදි පිළිතුර 4</option></select>
-        </div>`;
-    }
 
-    // Pattern inputs generator with Sinhala Labels
-    const pContainer = document.getElementById('p-inputs');
-    const pDetails = {
-        p1: { name: "WWW (0/3)", hint: "සියල්ල වැරදි විට" },
-        p2: { name: "WRW", hint: "2 වැරදි, 1 හරි" },
-        p3: { name: "WWR", hint: "2 වැරදි, 1 හරි" },
-        p4: { name: "RRW", hint: "2 හරි, 1 වැරදි" },
-        p5: { name: "RWR", hint: "2 හරි, 1 වැරදි" },
-        p6: { name: "WRR", hint: "2 හරි, 1 වැරදි" },
-        p7: { name: "RRR (3/3)", hint: "සියල්ල නිවැරදි විට" },
-        p8: { name: "RWW", hint: "1 හරි, 2 වැරදි" }
-    };
-
-    for(let i=1; i<=8; i++) {
-        const pId = 'p' + i;
-        pContainer.innerHTML += `
-        <div class="col-md-6">
-            <div class="pattern-box">
-                <span class="pattern-label">${pDetails[pId].name} - ${pDetails[pId].hint}</span>
-                <input type="text" id="${pId}_msg" class="form-control mb-1" placeholder="ශිෂ්‍යයාට පෙන්විය යුතු පණිවිඩය">
-                <input type="text" id="${pId}_url" class="form-control" placeholder="විවරණ වීඩියෝ ලින්ක් එක">
-            </div>
-        </div>`;
-    }
-
-    async function loadDashboard() {
-        const snap = await get(ref(db, 'daily_packs'));
-        const container = document.getElementById('paper-list'); container.innerHTML = "";
-        if(snap.exists()) {
-            Object.keys(snap.val()).sort().reverse().forEach(date => {
-                const isToday = date === todayStr;
-                container.innerHTML += `
-                <div class="col-md-6 col-lg-4">
-                    <div class="stat-card ${isToday ? 'active' : ''}">
-                        <div class="d-flex justify-content-between mb-2"><span class="badge bg-light text-dark">${date}</span>${isToday ? '<span class="badge bg-success">LIVE</span>' : ''}</div>
-                        <h6 class="fw-bold mb-3 small">Booster Paper Data</h6>
-                        <button class="btn btn-sm btn-danger w-100" onclick="deletePaper('${date}')">Delete Data</button>
+            <div class="col-md-10 p-4">
+                
+                <!-- SECTION: UPDATE BOOSTER -->
+                <div id="section-upload">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h3 class="fw-bold">අද දින ප්‍රශ්න පත්‍රය යාවත්කාලීන කිරීම</h3>
+                        <div class="d-flex gap-2">
+                            <input type="date" id="target-date" class="form-control" style="width: 200px;">
+                            <input type="number" id="timer-sec" class="form-control" value="60" style="width: 100px;" title="Timer Seconds">
+                        </div>
                     </div>
-                </div>`;
+
+                    <div class="row">
+                        <div class="col-lg-8">
+                            <div class="glass-card">
+                                <h5 class="fw-bold mb-4 text-accent"><i class="fas fa-pen-fancy me-2"></i>ප්‍රශ්න ඇතුළත් කරන්න (Questions)</h5>
+                                <div id="q-inputs"></div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-4">
+                            <div class="glass-card">
+                                <h5 class="fw-bold mb-4 text-accent"><i class="fas fa-magic me-2"></i>Result Patterns</h5>
+                                <div id="p-inputs" style="max-height: 600px; overflow-y: auto;"></div>
+                                <button class="btn btn-primary w-100 mt-4 py-3" onclick="publishBooster()">PUBLISH TODAY BOOSTER</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION: PAPER MANAGER -->
+                <div id="section-papers" style="display:none;">
+                    <h3 class="fw-bold mb-4">Paper Manager</h3>
+                    <div id="paper-list" class="row g-3"></div>
+                </div>
+
+                <!-- SECTION: RESULTS -->
+                <div id="section-results" style="display:none;">
+                    <h3 class="fw-bold mb-4">Live Performance</h3>
+                    <div class="glass-card">
+                        <table class="table">
+                            <thead><tr><th>ID</th><th>Name</th><th>Score</th><th>Time</th></tr></thead>
+                            <tbody id="live-results-table"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- SECTION: STUDENTS -->
+                <div id="section-students" style="display:none;">
+                    <h3 class="fw-bold mb-4">Student Management</h3>
+                    <div class="glass-card mb-4">
+                        <div class="row g-2">
+                            <div class="col-md-3"><input type="text" id="new-id" class="form-control" placeholder="ID Number"></div>
+                            <div class="col-md-4"><input type="text" id="new-name" class="form-control" placeholder="Student Name"></div>
+                            <div class="col-md-3"><input type="text" id="new-pass" class="form-control" placeholder="Password"></div>
+                            <div class="col-md-2"><button class="btn btn-primary w-100" onclick="addStudent()">ADD</button></div>
+                        </div>
+                    </div>
+                    <div class="glass-card"><table class="table"><tbody id="student-list-table"></tbody></table></div>
+                </div>
+
+                <!-- SECTION: ANALYZE -->
+                <div id="section-analyze" style="display:none;">
+                    <h3 class="fw-bold mb-4">Performance Analysis</h3>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <div class="glass-card text-center">
+                                <p class="small text-white-50">සක්‍රීය සිසුන් සංඛ්‍යාව</p>
+                                <div class="stat-val" id="stat-total-students">0</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="glass-card text-center">
+                                <p class="small text-white-50">අද දින සහභාගීත්වය</p>
+                                <div class="stat-val" id="stat-today-attempts">0</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="glass-card text-center">
+                                <p class="small text-white-50">සාමාන්‍ය ලකුණ (Average)</p>
+                                <div class="stat-val" id="stat-avg-score">0</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="col-lg-7">
+                            <div class="glass-card">
+                                <h5 class="fw-bold mb-4 text-accent"><i class="fas fa-exclamation-triangle me-2"></i>වැඩිපුරම වැරදුනු ප්‍රශ්න (Difficult Questions)</h5>
+                                <div id="fail-analysis-list">
+                                    <p class="text-white-50">දත්ත විශ්ලේෂණය කරමින්...</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-5">
+                            <div class="glass-card">
+                                <h5 class="fw-bold mb-4 text-accent"><i class="fas fa-chart-pie me-2"></i>ලකුණු ව්‍යාප්තිය (Score Distribution)</h5>
+                                <div id="score-dist-list"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, set, get, onValue, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        const firebaseConfig = { 
+            apiKey: "AIzaSyDMjYdugjdCiJG9uc9Ju_7n0qkljAiC9FE", 
+            authDomain: "morning-boost-48c64.firebaseapp.com", 
+            databaseURL: "https://morning-boost-48c64-default-rtdb.firebaseio.com", 
+            projectId: "morning-boost-48c64" 
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // PIN Check
+        window.checkAuth = () => {
+            if(document.getElementById('admin-pin').value === "2025") {
+                document.getElementById('auth-screen').style.display = 'none';
+                document.getElementById('admin-content').style.display = 'block';
+                initDashboard();
+            } else { alert("PIN එක වැරදියි!"); }
+        };
+
+        // Navigation
+        window.showSection = (name) => {
+            ['upload', 'papers', 'results', 'students', 'analyze'].forEach(s => {
+                document.getElementById(`section-${s}`).style.display = (s === name) ? 'block' : 'none';
+            });
+            document.querySelectorAll('.nav-link').forEach(l => {
+                l.classList.remove('active');
+                if(l.textContent.toLowerCase().includes(name)) l.classList.add('active');
+            });
+            
+            if(name === 'papers') loadPaperList();
+            if(name === 'analyze') runAnalysis();
+        };
+
+        const pDetails = {
+            p7: { name: "RRR (3/3)", hint: "සියල්ල නිවැරදි විට" },
+            p4: { name: "RRW", hint: "1 සහ 2 හරි, 3 වැරදි" },
+            p5: { name: "RWR", hint: "1 සහ 3 හරි, 2 වැරදි" },
+            p1: { name: "RWW", hint: "1 පමණක් හරි" },
+            p6: { name: "WRR", hint: "2 සහ 3 හරි, 1 වැරදි" },
+            p2: { name: "WRW", hint: "2 පමණක් හරි" },
+            p3: { name: "WWR", hint: "3 පමණක් හරි" },
+            p8: { name: "WWW (0/3)", hint: "සියල්ල වැරදි විට" }
+        };
+
+        function initDashboard() {
+            document.getElementById('target-date').valueAsDate = new Date();
+            
+            // Render Q inputs
+            const qCont = document.getElementById('q-inputs');
+            qCont.innerHTML = "";
+            for(let i=1; i<=3; i++) {
+                qCont.innerHTML += `
+                    <div class="q-box">
+                        <label class="fw-bold mb-2">ප්‍රශ්නය ${i}</label>
+                        <input type="text" id="q${i}_text" class="form-control mb-2" placeholder="ප්‍රශ්නය මෙතැන ලියන්න">
+                        <input type="text" id="q${i}_img" class="form-control mb-3" placeholder="රූපරාමු ලින්ක් එක (Image URL - ඇත්නම් පමණි)">
+                        <div class="row g-2">
+                            <div class="col-6"><input type="text" id="q${i}_o1" class="form-control mb-1" placeholder="Option 1"></div>
+                            <div class="col-6"><input type="text" id="q${i}_o2" class="form-control mb-1" placeholder="Option 2"></div>
+                            <div class="col-6"><input type="text" id="q${i}_o3" class="form-control mb-1" placeholder="Option 3"></div>
+                            <div class="col-6"><input type="text" id="q${i}_o4" class="form-control mb-1" placeholder="Option 4"></div>
+                        </div>
+                        <select id="q${i}_corr" class="form-select mt-2 border-success">
+                            <option value="1">නිවැරදි පිළිතුර 1</option><option value="2">නිවැරදි පිළිතුර 2</option>
+                            <option value="3">නිවැරදි පිළිතුර 3</option><option value="4">නිවැරදි පිළිතුර 4</option>
+                        </select>
+                    </div>
+                `;
+            }
+
+            // Render P inputs
+            const pCont = document.getElementById('p-inputs');
+            pCont.innerHTML = "";
+            Object.keys(pDetails).forEach(pId => {
+                pCont.innerHTML += `
+                    <div class="mb-3 p-3 bg-dark rounded-3 border border-secondary">
+                        <span class="pattern-label">${pDetails[pId].name} - ${pDetails[pId].hint}</span>
+                        <textarea id="${pId}_msg" class="form-control mb-2 small" rows="2" placeholder="Message..."></textarea>
+                        <input type="text" id="${pId}_url" class="form-control form-control-sm" placeholder="Video Link">
+                    </div>
+                `;
+            });
+
+            syncStudents();
+            syncResults();
+        }
+
+        window.publishBooster = async () => {
+            const date = document.getElementById('target-date').value;
+            const pack = {
+                timer_sec: document.getElementById('timer-sec').value,
+                questions: {}, patterns: {}
+            };
+            for(let i=1; i<=3; i++) {
+                pack.questions[`q${i}`] = {
+                    text: document.getElementById(`q${i}_text`).value,
+                    img: document.getElementById(`q${i}_img`).value,
+                    options: [document.getElementById(`q${i}_o1`).value, document.getElementById(`q${i}_o2`).value, document.getElementById(`q${i}_o3`).value, document.getElementById(`q${i}_o4`).value],
+                    correct: document.getElementById(`q${i}_corr`).value
+                };
+            }
+            Object.keys(pDetails).forEach(pId => {
+                pack.patterns[pId] = { msg: document.getElementById(`${pId}_msg`).value, url: document.getElementById(`${pId}_url`).value };
+            });
+
+            await set(ref(db, `daily_packs/${date}`), pack);
+            alert("සාර්ථකව Publish කළා!");
+        };
+
+        async function loadPaperList() {
+            const snap = await get(ref(db, 'daily_packs'));
+            const cont = document.getElementById('paper-list'); cont.innerHTML = "";
+            if(snap.exists()) {
+                Object.keys(snap.val()).sort().reverse().forEach(date => {
+                    cont.innerHTML += `
+                        <div class="col-md-4">
+                            <div class="glass-card text-center">
+                                <h6 class="fw-bold">${date}</h6>
+                                <button class="btn btn-sm btn-outline-danger mt-2" onclick="deletePaper('${date}')">Delete Paper</button>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+        }
+
+        window.deletePaper = async (date) => {
+            if(confirm("මෙම Paper එක මකා දැමීමට ඔබට විශ්වාසද?")) {
+                await remove(ref(db, `daily_packs/${date}`));
+                await remove(ref(db, `results/${date}`));
+                loadPaperList();
+            }
+        };
+
+        function syncStudents() {
+            onValue(ref(db, 'students'), snap => {
+                const table = document.getElementById('student-list-table');
+                table.innerHTML = "";
+                if(snap.exists()){
+                    const students = snap.val();
+                    document.getElementById('stat-total-students').innerText = Object.keys(students).length;
+                    Object.keys(students).forEach(id => {
+                        const s = students[id];
+                        table.innerHTML += `<tr><td>${id}</td><td>${s.name}</td><td>${s.password}</td><td><button class="btn btn-sm text-danger" onclick="deleteStudent('${id}')"><i class="fas fa-trash"></i></button></td></tr>`;
+                    });
+                }
             });
         }
-    }
 
-    window.showCreateMode = () => {
-        document.getElementById('pack_date').value = todayStr;
-        document.getElementById('dashboard-view').style.display = 'none';
-        document.getElementById('editor-view').style.display = 'block';
-    };
-
-    window.hideEditor = () => {
-        document.getElementById('dashboard-view').style.display = 'block';
-        document.getElementById('editor-view').style.display = 'none';
-    };
-
-    window.savePack = async function() {
-        const pack = {
-            timer_sec: document.getElementById('timer_sec').value,
-            music_url: document.getElementById('music_url').value,
-            questions: {}, patterns: {}
+        window.addStudent = async () => {
+            const id = document.getElementById('new-id').value;
+            const name = document.getElementById('new-name').value;
+            const pass = document.getElementById('new-pass').value;
+            if(id && name && pass) await set(ref(db, `students/${id}`), { name, password: pass });
         };
-        for(let i=1; i<=3; i++) {
-            pack.questions[`q${i}`] = {
-                text: document.getElementById(`q${i}_text`).value,
-                img: document.getElementById(`q${i}_img`).value,
-                options: [document.getElementById(`q${i}_o1`).value, document.getElementById(`q${i}_o2`).value, document.getElementById(`q${i}_o3`).value, document.getElementById(`q${i}_o4`).value],
-                correct: document.getElementById(`q${i}_corr`).value
-            };
-        }
-        for(let i=1; i<=8; i++) {
-            pack.patterns[`p${i}`] = { msg: document.getElementById(`p${i}_msg`).value, url: document.getElementById(`p${i}_url`).value };
-        }
-        await set(ref(db, `daily_packs/${todayStr}`), pack);
-        alert("සාර්ථකව Publish කළා!"); location.reload();
-    };
 
-    window.deletePaper = async (date) => {
-        if(confirm("මෙම පේපර් එක සහ ළමුන්ගේ ලකුණු මකා දැමීමට ඔබට විශ්වාසද?")) {
-            await remove(ref(db, `daily_packs/${date}`));
-            await remove(ref(db, `results/${date}`));
-            location.reload();
-        }
-    };
+        window.deleteStudent = id => remove(ref(db, `students/${id}`));
 
-    loadDashboard();
-</script>
+        function syncResults() {
+            const today = new Date().toISOString().split('T')[0];
+            onValue(ref(db, `results/${today}`), snap => {
+                const table = document.getElementById('live-results-table');
+                table.innerHTML = "";
+                if(snap.exists()) {
+                    const results = snap.val();
+                    document.getElementById('stat-today-attempts').innerText = Object.keys(results).length;
+                    Object.keys(results).forEach(sid => {
+                        const r = results[sid];
+                        table.innerHTML += `<tr><td>${sid}</td><td>${r.name}</td><td>${r.score}/30</td><td>Just now</td></tr>`;
+                    });
+                }
+            });
+        }
+
+        async function runAnalysis() {
+            const today = new Date().toISOString().split('T')[0];
+            const resultsSnap = await get(ref(db, `results/${today}`));
+            const packSnap = await get(ref(db, `daily_packs/${today}`));
+            
+            if(!resultsSnap.exists() || !packSnap.exists()) {
+                document.getElementById('fail-analysis-list').innerHTML = "<p class='text-white-50'>අද දින දත්ත තවමත් ලැබී නැත.</p>";
+                return;
+            }
+
+            const results = resultsSnap.val();
+            const pack = packSnap.val();
+            const studentsArr = Object.values(results);
+            
+            // Stats
+            const totalScore = studentsArr.reduce((acc, curr) => acc + (curr.score || 0), 0);
+            const avg = (totalScore / studentsArr.length).toFixed(1);
+            document.getElementById('stat-avg-score').innerText = avg;
+
+            // Question Fail Analysis
+            const failCounts = { q1: 0, q2: 0, q3: 0 };
+            const scoreCounts = { '30': 0, '20': 0, '10': 0, '0': 0 };
+
+            studentsArr.forEach(r => {
+                // Score dist
+                scoreCounts[r.score] = (scoreCounts[r.score] || 0) + 1;
+                
+                // Assume binary result string or logic exists in student submission
+                // Since our current DB structure saves only final score, we infer from patterns if available
+                // For now, let's visualize based on common failure patterns from pDetails
+                if(r.pattern === 'p8') { failCounts.q1++; failCounts.q2++; failCounts.q3++; }
+                if(r.pattern === 'p1') { failCounts.q2++; failCounts.q3++; }
+                if(r.pattern === 'p2') { failCounts.q1++; failCounts.q3++; }
+                if(r.pattern === 'p3') { failCounts.q1++; failCounts.q2++; }
+            });
+
+            let failHtml = "";
+            for(let i=1; i<=3; i++) {
+                const qKey = `q${i}`;
+                const count = failCounts[qKey];
+                const perc = ((count / studentsArr.length) * 100).toFixed(0);
+                failHtml += `
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span class="small">${pack.questions[qKey].text}</span>
+                            <span class="text-danger fw-bold">${perc}% Failed</span>
+                        </div>
+                        <div class="progress"><div class="progress-bar bg-danger" style="width: ${perc}%"></div></div>
+                    </div>
+                `;
+            }
+            document.getElementById('fail-analysis-list').innerHTML = failHtml;
+
+            // Score Distribution
+            let distHtml = "";
+            [30, 20, 10, 0].forEach(score => {
+                const count = scoreCounts[score] || 0;
+                const perc = ((count / studentsArr.length) * 100).toFixed(0);
+                distHtml += `
+                    <div class="d-flex align-items-center gap-3 mb-2">
+                        <div style="width: 50px;" class="fw-bold">${score}/30</div>
+                        <div class="flex-grow-1"><div class="progress"><div class="progress-bar bg-info" style="width: ${perc}%"></div></div></div>
+                        <div style="width: 30px;">${count}</div>
+                    </div>
+                `;
+            });
+            document.getElementById('score-dist-list').innerHTML = distHtml;
+        }
+    </script>
 </body>
 </html>
