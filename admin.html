@@ -11,11 +11,11 @@
         body { background: var(--bg); font-family: 'Segoe UI', sans-serif; }
         .stat-card { background: white; border-radius: 15px; padding: 20px; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.05); transition: 0.3s; border-left: 5px solid #ccc; }
         .stat-card.active { border-left-color: #28a745; }
-        .stat-card:hover { transform: translateY(-5px); }
         .header-bar { background: var(--primary); color: white; padding: 20px; border-radius: 0 0 30px 30px; margin-bottom: 30px; }
         .admin-box { background: white; border-radius: 20px; padding: 25px; display: none; }
-        .date-badge { background: #e9ecef; padding: 5px 12px; border-radius: 8px; font-weight: bold; font-size: 0.8rem; }
         .btn-round { border-radius: 50px; padding: 10px 25px; font-weight: bold; }
+        .pattern-box { background: #f8f9fa; border-radius: 12px; padding: 15px; margin-bottom: 10px; border: 1px solid #dee2e6; }
+        .pattern-label { font-size: 0.8rem; font-weight: bold; color: #6f42c1; margin-bottom: 5px; display: block; }
     </style>
 </head>
 <body>
@@ -28,20 +28,10 @@
 <div class="container">
     <div id="dashboard-view">
         <div class="d-flex justify-content-between align-items-center mb-4 p-3 bg-white rounded-4 shadow-sm">
-            <div>
-                <h5 class="fw-bold mb-0">Daily Booster Manager</h5>
-                <small class="text-muted">Manage your daily chemistry papers</small>
-            </div>
-            <button class="btn btn-primary btn-round" onclick="showCreateMode()">
-                <i class="fas fa-plus-circle me-2"></i>Update Today Question
-            </button>
+            <div><h5 class="fw-bold mb-0">Daily Booster Manager</h5></div>
+            <button class="btn btn-primary btn-round" onclick="showCreateMode()"><i class="fas fa-plus-circle me-2"></i>Update Today Question</button>
         </div>
-
-        <div id="paper-list" class="row g-3">
-            <div class="col-12 text-center py-5">
-                <div class="spinner-border text-primary"></div>
-            </div>
-        </div>
+        <div id="paper-list" class="row g-3"></div>
     </div>
 
     <div id="editor-view" class="admin-box shadow-lg mb-5">
@@ -51,21 +41,16 @@
         </div>
 
         <div class="row mb-4">
-            <div class="col-md-4">
-                <label class="small fw-bold">Target Date</label>
-                <input type="date" id="pack_date" class="form-control" readonly>
-            </div>
-            <div class="col-md-4">
-                <label class="small fw-bold">Seconds per Q</label>
-                <input type="number" id="timer_sec" class="form-control" value="60">
-            </div>
-            <div class="col-md-4">
-                <label class="small fw-bold">Music URL (Optional)</label>
-                <input type="text" id="music_url" class="form-control" placeholder="URL">
-            </div>
+            <div class="col-md-4"><label class="small fw-bold">දිනය (Date)</label><input type="date" id="pack_date" class="form-control" readonly></div>
+            <div class="col-md-4"><label class="small fw-bold">කාලය (Seconds)</label><input type="number" id="timer_sec" class="form-control" value="60"></div>
+            <div class="col-md-4"><label class="small fw-bold">සංගීතය (Music URL)</label><input type="text" id="music_url" class="form-control"></div>
         </div>
 
+        <h6 class="fw-bold mb-3 text-secondary border-bottom pb-2">1. ප්‍රශ්න ඇතුළත් කරන්න (Questions)</h6>
         <div id="q-inputs"></div>
+
+        <h6 class="fw-bold mb-3 text-secondary border-bottom pb-2 mt-4">2. ප්‍රතිඵල අනුව පණිවිඩ සහ වීඩියෝ (Result Patterns)</h6>
+        <div class="row" id="p-inputs"></div>
 
         <div class="mt-4 d-flex gap-2">
             <button class="btn btn-success btn-round w-100 py-3" onclick="savePack()">PUBLISH PAPER</button>
@@ -78,15 +63,8 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getDatabase, ref, get, set, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyDMjYdugjdCiJG9uc9Ju_7n0qkljAiC9FE",
-        authDomain: "morning-boost-48c64.firebaseapp.com",
-        databaseURL: "https://morning-boost-48c64-default-rtdb.firebaseio.com",
-        projectId: "morning-boost-48c64"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+    const firebaseConfig = { apiKey: "AIzaSyDMjYdugjdCiJG9uc9Ju_7n0qkljAiC9FE", authDomain: "morning-boost-48c64.firebaseapp.com", databaseURL: "https://morning-boost-48c64-default-rtdb.firebaseio.com", projectId: "morning-boost-48c64" };
+    const app = initializeApp(firebaseConfig); const db = getDatabase(app);
     const todayStr = new Date().toISOString().split('T')[0];
 
     // Q inputs generator
@@ -94,54 +72,63 @@
     for(let i=1; i<=3; i++) {
         qContainer.innerHTML += `
         <div class="p-3 border rounded-4 mb-3 bg-light">
-            <h6 class="fw-bold small text-secondary">Question ${i}</h6>
-            <input type="text" id="q${i}_text" class="form-control mb-2" placeholder="Question text">
-            <input type="text" id="q${i}_img" class="form-control mb-2 small" placeholder="Image URL (optional)">
+            <h6 class="fw-bold small">ප්‍රශ්නය ${i}</h6>
+            <input type="text" id="q${i}_text" class="form-control mb-2" placeholder="ප්‍රශ්නය මෙතැන ලියන්න">
+            <input type="text" id="q${i}_img" class="form-control mb-2" placeholder="රූපරාමුවේ ලින්ක් එක (තිබේ නම්)">
             <div class="row g-2">
-                <div class="col-6"><input type="text" id="q${i}_o1" class="form-control form-control-sm" placeholder="Option 1"></div>
-                <div class="col-6"><input type="text" id="q${i}_o2" class="form-control form-control-sm" placeholder="Option 2"></div>
-                <div class="col-6"><input type="text" id="q${i}_o3" class="form-control form-control-sm" placeholder="Option 3"></div>
-                <div class="col-6"><input type="text" id="q${i}_o4" class="form-control form-control-sm" placeholder="Option 4"></div>
+                <div class="col-6"><input type="text" id="q${i}_o1" class="form-control" placeholder="පිළිතුර 1"></div>
+                <div class="col-6"><input type="text" id="q${i}_o2" class="form-control" placeholder="පිළිතුර 2"></div>
+                <div class="col-6"><input type="text" id="q${i}_o3" class="form-control" placeholder="පිළිතුර 3"></div>
+                <div class="col-6"><input type="text" id="q${i}_o4" class="form-control" placeholder="පිළිතුර 4"></div>
             </div>
-            <select id="q${i}_corr" class="form-select form-select-sm mt-2"><option value="1">Answer 1</option><option value="2">Answer 2</option><option value="3">Answer 3</option><option value="4">Answer 4</option></select>
+            <select id="q${i}_corr" class="form-select mt-2"><option value="1">නිවැරදි පිළිතුර 1</option><option value="2">නිවැරදි පිළිතුර 2</option><option value="3">නිවැරදි පිළිතුර 3</option><option value="4">නිවැරදි පිළිතුර 4</option></select>
+        </div>`;
+    }
+
+    // Pattern inputs generator with Sinhala Labels
+    const pContainer = document.getElementById('p-inputs');
+    const pDetails = {
+        p1: { name: "WWW (0/3)", hint: "සියල්ල වැරදි විට" },
+        p2: { name: "WRW", hint: "2 වැරදි, 1 හරි" },
+        p3: { name: "WWR", hint: "2 වැරදි, 1 හරි" },
+        p4: { name: "RRW", hint: "2 හරි, 1 වැරදි" },
+        p5: { name: "RWR", hint: "2 හරි, 1 වැරදි" },
+        p6: { name: "WRR", hint: "2 හරි, 1 වැරදි" },
+        p7: { name: "RRR (3/3)", hint: "සියල්ල නිවැරදි විට" },
+        p8: { name: "RWW", hint: "1 හරි, 2 වැරදි" }
+    };
+
+    for(let i=1; i<=8; i++) {
+        const pId = 'p' + i;
+        pContainer.innerHTML += `
+        <div class="col-md-6">
+            <div class="pattern-box">
+                <span class="pattern-label">${pDetails[pId].name} - ${pDetails[pId].hint}</span>
+                <input type="text" id="${pId}_msg" class="form-control mb-1" placeholder="ශිෂ්‍යයාට පෙන්විය යුතු පණිවිඩය">
+                <input type="text" id="${pId}_url" class="form-control" placeholder="විවරණ වීඩියෝ ලින්ක් එක">
+            </div>
         </div>`;
     }
 
     async function loadDashboard() {
         const snap = await get(ref(db, 'daily_packs'));
-        const container = document.getElementById('paper-list');
-        container.innerHTML = "";
-
+        const container = document.getElementById('paper-list'); container.innerHTML = "";
         if(snap.exists()) {
-            const data = snap.val();
-            const sortedDates = Object.keys(data).sort().reverse();
-            sortedDates.forEach(date => {
+            Object.keys(snap.val()).sort().reverse().forEach(date => {
                 const isToday = date === todayStr;
                 container.innerHTML += `
                 <div class="col-md-6 col-lg-4">
                     <div class="stat-card ${isToday ? 'active' : ''}">
-                        <div class="d-flex justify-content-between align-items-start mb-2">
-                            <span class="date-badge">${date}</span>
-                            ${isToday ? '<span class="badge bg-success">LIVE</span>' : ''}
-                        </div>
-                        <h6 class="fw-bold mb-3">Booster Paper</h6>
-                        <div class="d-flex gap-2">
-                            <button class="btn btn-sm btn-danger w-100" onclick="deletePaper('${date}')">Delete to Change</button>
-                        </div>
+                        <div class="d-flex justify-content-between mb-2"><span class="badge bg-light text-dark">${date}</span>${isToday ? '<span class="badge bg-success">LIVE</span>' : ''}</div>
+                        <h6 class="fw-bold mb-3 small">Booster Paper Data</h6>
+                        <button class="btn btn-sm btn-danger w-100" onclick="deletePaper('${date}')">Delete Data</button>
                     </div>
                 </div>`;
             });
-        } else {
-            container.innerHTML = `<div class="text-center text-muted py-5">No papers found. Create one for today!</div>`;
         }
     }
 
-    window.showCreateMode = async function() {
-        const snap = await get(ref(db, `daily_packs/${todayStr}`));
-        if(snap.exists()) {
-            alert("අද දිනට දැනටමත් පේපර් එකක් දමා ඇත. වෙනස් කිරීමට අවශ්‍ය නම් එය මුලින්ම Delete කරන්න.");
-            return;
-        }
+    window.showCreateMode = () => {
         document.getElementById('pack_date').value = todayStr;
         document.getElementById('dashboard-view').style.display = 'none';
         document.getElementById('editor-view').style.display = 'block';
@@ -153,49 +140,31 @@
     };
 
     window.savePack = async function() {
-        const date = document.getElementById('pack_date').value;
         const pack = {
             timer_sec: document.getElementById('timer_sec').value,
             music_url: document.getElementById('music_url').value,
-            questions: {},
-            patterns: { 
-                p1:{msg:"Try Again!",url:"#"}, p2:{msg:"Good!",url:"#"}, p3:{msg:"Well Done!",url:"#"}, p4:{msg:"Nice!",url:"#"},
-                p5:{msg:"Great!",url:"#"}, p6:{msg:"Excellant!",url:"#"}, p7:{msg:"Brilliant!",url:"#"}, p8:{msg:"Keep it up!",url:"#"}
-            }
+            questions: {}, patterns: {}
         };
-
         for(let i=1; i<=3; i++) {
             pack.questions[`q${i}`] = {
                 text: document.getElementById(`q${i}_text`).value,
                 img: document.getElementById(`q${i}_img`).value,
-                options: [
-                    document.getElementById(`q${i}_o1`).value,
-                    document.getElementById(`q${i}_o2`).value,
-                    document.getElementById(`q${i}_o3`).value,
-                    document.getElementById(`q${i}_o4`).value
-                ],
+                options: [document.getElementById(`q${i}_o1`).value, document.getElementById(`q${i}_o2`).value, document.getElementById(`q${i}_o3`).value, document.getElementById(`q${i}_o4`).value],
                 correct: document.getElementById(`q${i}_corr`).value
             };
         }
-
-        await set(ref(db, `daily_packs/${date}`), pack);
-        alert("Paper Published Successfully!");
-        location.reload();
+        for(let i=1; i<=8; i++) {
+            pack.patterns[`p${i}`] = { msg: document.getElementById(`p${i}_msg`).value, url: document.getElementById(`p${i}_url`).value };
+        }
+        await set(ref(db, `daily_packs/${todayStr}`), pack);
+        alert("සාර්ථකව Publish කළා!"); location.reload();
     };
 
-    window.deletePaper = async function(date) {
-        if(confirm(`ඔබට විශ්වාසද ${date} පේපර් එක සහ ළමුන්ගේ ලකුණු (Results) මකා දැමීමට අවශ්‍ය බව?`)) {
-            try {
-                // 1. Pack එක මකනවා
-                await remove(ref(db, `daily_packs/${date}`));
-                // 2. Results එකත් මකනවා (එතකොට තමයි ළමයට ආයේ කරන්න පුළුවන් වෙන්නේ)
-                await remove(ref(db, `results/${date}`));
-                
-                alert("දත්ත සාර්ථකව මැකුවා!");
-                location.reload();
-            } catch(e) {
-                alert("Error: " + e.message);
-            }
+    window.deletePaper = async (date) => {
+        if(confirm("මෙම පේපර් එක සහ ළමුන්ගේ ලකුණු මකා දැමීමට ඔබට විශ්වාසද?")) {
+            await remove(ref(db, `daily_packs/${date}`));
+            await remove(ref(db, `results/${date}`));
+            location.reload();
         }
     };
 
