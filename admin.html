@@ -1,3 +1,48 @@
+Skip to content
+Navigation Menu
+nudaraducks-cmd
+morning-bostre-app
+
+Type / to search
+Code
+Issues
+Pull requests
+Actions
+Projects
+Wiki
+Security
+1
+Insights
+Settings
+Commit 7b864ec
+nudaraducks-cmd
+nudaraducks-cmd
+authored
+2 days ago
+·
+·
+Verified
+Update admin.html
+main
+1 parent 
+506a1cf
+ commit 
+7b864ec
+File tree
+Filter files…
+admin.html
+1 file changed
++211
+-18
+lines changed
+Search within code
+ 
+‎admin.html‎
++211
+-18
+Lines changed: 211 additions & 18 deletions
+Original file line number	Diff line number	Diff line change
+@@ -1,29 +1,222 @@
 <div id="dashboard-view" class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4 p-3 bg-white rounded-4 shadow-sm">
         <div>
@@ -38,15 +83,14 @@
     </style>
 </head>
 <body>
-
 <div id="dashboard-view">
     <div class="header-section text-center">
         <h2 class="fw-bold">Control Panel</h2>
         <p>Madawa Wijesingha Chemistry</p>
         <button class="btn-update mt-3" onclick="openEditor()">
-<i class="fas fa-plus-circle me-2"></i>Update Today Question
-</button>
-</div>
+            <i class="fas fa-plus-circle me-2"></i>Update Today Question
+        </button>
+    </div>
 
     <div id="paper-list" class="row g-3">
         </div>
@@ -69,7 +113,6 @@
             <h3 class="fw-bold text-primary"><i class="fas fa-edit me-2"></i>Update Today Question</h3>
             <button class="btn-close" onclick="closeEditor()"></button>
         </div>
-
         <div class="card border-0 shadow-sm p-4 rounded-4 bg-light mb-4">
             <div class="row g-3">
                 <div class="col-md-6">
@@ -80,25 +123,21 @@
                     <label class="small fw-bold">Music (SoundCloud Link)</label>
                     <input type="text" id="music_url" class="form-control" placeholder="https://...">
                 </div>
-</div>
-</div>
+            </div>
+        </div>
         <div class="card-body p-4">
             <div id="q-inputs"></div> 
             <button class="btn btn-success w-100 py-3 fw-bold rounded-pill mt-3" onclick="savePack()">PUBLISH NOW</button>
-
         <div id="q-inputs"></div>
-
         <div class="py-4">
             <button class="btn btn-success btn-lg w-100 rounded-pill fw-bold" onclick="savePack()">PUBLISH PAPER NOW</button>
             <button class="btn btn-link w-100 text-muted mt-2" onclick="closeEditor()">Cancel & Go Back</button>
+        </div>
+    </div>
 </div>
-</div>
-</div>
-
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { getDatabase, ref, get, set, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-
     const firebaseConfig = {
         apiKey: "AIzaSyDMjYdugjdCiJG9uc9Ju_7n0qkljAiC9FE",
         authDomain: "morning-boost-48c64.firebaseapp.com",
@@ -108,27 +147,21 @@
         messagingSenderId: "140528602458",
         appId: "1:140528602458:web:34e14db5a5d93d1db13763"
     };
-
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
-
     const todayStr = new Date().toISOString().split('T')[0];
-
     // Load Dashboard Content
     async function loadDashboard() {
         const snap = await get(ref(db, 'daily_packs'));
         const list = document.getElementById('paper-list');
         list.innerHTML = "";
-
         if(snap.exists()) {
             const data = snap.val();
             const sortedDates = Object.keys(data).sort().reverse();
-
             sortedDates.forEach(date => {
                 const isToday = (date === todayStr);
                 const isPast = (date < todayStr);
                 const displayDate = new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-
                 list.innerHTML += `
                 <div class="col-md-6 col-lg-4">
                     <div class="paper-card ${isToday ? 'active' : ''}">
@@ -147,7 +180,6 @@
             });
         }
     }
-
     // Editor Logic
     window.openEditor = async function() {
         const snap = await get(ref(db, `daily_packs/${todayStr}`));
@@ -160,12 +192,10 @@
         document.getElementById('dashboard-view').style.display = 'none';
         setupQuestionInputs();
     };
-
     window.closeEditor = () => {
         document.getElementById('editor-view').style.display = 'none';
         document.getElementById('dashboard-view').style.display = 'block';
     };
-
     function setupQuestionInputs() {
         const container = document.getElementById('q-inputs');
         container.innerHTML = "";
@@ -190,7 +220,6 @@
             </div>`;
         }
     }
-
     window.savePack = async function() {
         const pack = {
             timer_sec: 60,
@@ -207,7 +236,6 @@
                 p8:{msg:"අද දින බූස්ටරය සාර්ථකව නිම කළා! මදි පාඩු මෙතනින් බලමු.",url:"#"}
             }
         };
-
         for(let i=1; i<=3; i++) {
             pack.questions[`q${i}`] = {
                 text: document.getElementById(`q${i}_text`).value,
@@ -221,20 +249,25 @@
                 correct: document.getElementById(`q${i}_corr`).value
             };
         }
-
         await set(ref(db, `daily_packs/${todayStr}`), pack);
         alert("Published Successfully!");
         location.reload();
     };
-
     window.deletePaper = async function(date) {
         if(confirm(`${date} පේපර් එක මකා දැමීමට ඔබට විශ්වාසද?`)) {
             await remove(ref(db, `daily_packs/${date}`));
             location.reload();
         }
     };
-
     loadDashboard();
 </script>
 </body>
 </html>
+0 commit comments
+Comments
+0
+ (0)
+Comment
+You're not receiving notifications from this thread.
+
+ 
