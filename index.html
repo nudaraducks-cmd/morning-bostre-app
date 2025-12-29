@@ -176,7 +176,9 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // PIN Check
+        // Enter key for PIN
+        document.getElementById('admin-pin').addEventListener('keypress', e => { if(e.key === 'Enter') checkAuth(); });
+
         window.checkAuth = () => {
             if(document.getElementById('admin-pin').value === "2025") {
                 document.getElementById('auth-screen').style.display = 'none';
@@ -185,7 +187,6 @@
             } else { alert("PIN එක වැරදියි!"); }
         };
 
-        // Navigation
         window.showSection = (name) => {
             ['upload', 'papers', 'results', 'students', 'analyze'].forEach(s => {
                 document.getElementById(`section-${s}`).style.display = (s === name) ? 'block' : 'none';
@@ -194,7 +195,6 @@
                 l.classList.remove('active');
                 if(l.textContent.toLowerCase().includes(name)) l.classList.add('active');
             });
-            
             if(name === 'papers') loadPaperList();
             if(name === 'analyze') runAnalysis();
         };
@@ -203,8 +203,8 @@
             p7: { name: "RRR (3/3)", hint: "සියල්ල නිවැරදි විට" },
             p4: { name: "RRW", hint: "1 සහ 2 හරි, 3 වැරදි" },
             p5: { name: "RWR", hint: "1 සහ 3 හරි, 2 වැරදි" },
-            p1: { name: "RWW", hint: "1 පමණක් හරි" },
             p6: { name: "WRR", hint: "2 සහ 3 හරි, 1 වැරදි" },
+            p1: { name: "RWW", hint: "1 පමණක් හරි" },
             p2: { name: "WRW", hint: "2 පමණක් හරි" },
             p3: { name: "WWR", hint: "3 පමණක් හරි" },
             p8: { name: "WWW (0/3)", hint: "සියල්ල වැරදි විට" }
@@ -212,53 +212,40 @@
 
         function initDashboard() {
             document.getElementById('target-date').valueAsDate = new Date();
-            
-            // Render Q inputs
             const qCont = document.getElementById('q-inputs');
             qCont.innerHTML = "";
             for(let i=1; i<=3; i++) {
                 qCont.innerHTML += `
                     <div class="q-box">
                         <label class="fw-bold mb-2">ප්‍රශ්නය ${i}</label>
-                        <input type="text" id="q${i}_text" class="form-control mb-2" placeholder="ප්‍රශ්නය මෙතැන ලියන්න">
-                        <input type="text" id="q${i}_img" class="form-control mb-3" placeholder="රූපරාමු ලින්ක් එක (Image URL - ඇත්නම් පමණි)">
+                        <input type="text" id="q${i}_text" class="form-control mb-2" placeholder="ප්‍රශ්නය">
+                        <input type="text" id="q${i}_img" class="form-control mb-3" placeholder="Image URL">
                         <div class="row g-2">
-                            <div class="col-6"><input type="text" id="q${i}_o1" class="form-control mb-1" placeholder="Option 1"></div>
-                            <div class="col-6"><input type="text" id="q${i}_o2" class="form-control mb-1" placeholder="Option 2"></div>
-                            <div class="col-6"><input type="text" id="q${i}_o3" class="form-control mb-1" placeholder="Option 3"></div>
-                            <div class="col-6"><input type="text" id="q${i}_o4" class="form-control mb-1" placeholder="Option 4"></div>
+                            <div class="col-6"><input type="text" id="q${i}_o1" class="form-control" placeholder="1"></div>
+                            <div class="col-6"><input type="text" id="q${i}_o2" class="form-control" placeholder="2"></div>
+                            <div class="col-6"><input type="text" id="q${i}_o3" class="form-control" placeholder="3"></div>
+                            <div class="col-6"><input type="text" id="q${i}_o4" class="form-control" placeholder="4"></div>
                         </div>
-                        <select id="q${i}_corr" class="form-select mt-2 border-success">
-                            <option value="1">නිවැරදි පිළිතුර 1</option><option value="2">නිවැරදි පිළිතුර 2</option>
-                            <option value="3">නිවැරදි පිළිතුර 3</option><option value="4">නිවැරදි පිළිතුර 4</option>
-                        </select>
-                    </div>
-                `;
+                        <select id="q${i}_corr" class="form-select mt-2"><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option></select>
+                    </div>`;
             }
-
-            // Render P inputs
             const pCont = document.getElementById('p-inputs');
             pCont.innerHTML = "";
             Object.keys(pDetails).forEach(pId => {
                 pCont.innerHTML += `
                     <div class="mb-3 p-3 bg-dark rounded-3 border border-secondary">
-                        <span class="pattern-label">${pDetails[pId].name} - ${pDetails[pId].hint}</span>
-                        <textarea id="${pId}_msg" class="form-control mb-2 small" rows="2" placeholder="Message..."></textarea>
+                        <span class="pattern-label">${pDetails[pId].name}</span>
+                        <textarea id="${pId}_msg" class="form-control mb-2 small" rows="2"></textarea>
                         <input type="text" id="${pId}_url" class="form-control form-control-sm" placeholder="Video Link">
-                    </div>
-                `;
+                    </div>`;
             });
-
             syncStudents();
             syncResults();
         }
 
         window.publishBooster = async () => {
             const date = document.getElementById('target-date').value;
-            const pack = {
-                timer_sec: document.getElementById('timer-sec').value,
-                questions: {}, patterns: {}
-            };
+            const pack = { timer_sec: document.getElementById('timer-sec').value, questions: {}, patterns: {} };
             for(let i=1; i<=3; i++) {
                 pack.questions[`q${i}`] = {
                     text: document.getElementById(`q${i}_text`).value,
@@ -267,12 +254,9 @@
                     correct: document.getElementById(`q${i}_corr`).value
                 };
             }
-            Object.keys(pDetails).forEach(pId => {
-                pack.patterns[pId] = { msg: document.getElementById(`${pId}_msg`).value, url: document.getElementById(`${pId}_url`).value };
-            });
-
+            Object.keys(pDetails).forEach(pId => { pack.patterns[pId] = { msg: document.getElementById(`${pId}_msg`).value, url: document.getElementById(`${pId}_url`).value }; });
             await set(ref(db, `daily_packs/${date}`), pack);
-            alert("සාර්ථකව Publish කළා!");
+            alert("Published!");
         };
 
         async function loadPaperList() {
@@ -280,25 +264,12 @@
             const cont = document.getElementById('paper-list'); cont.innerHTML = "";
             if(snap.exists()) {
                 Object.keys(snap.val()).sort().reverse().forEach(date => {
-                    cont.innerHTML += `
-                        <div class="col-md-4">
-                            <div class="glass-card text-center">
-                                <h6 class="fw-bold">${date}</h6>
-                                <button class="btn btn-sm btn-outline-danger mt-2" onclick="deletePaper('${date}')">Delete Paper</button>
-                            </div>
-                        </div>
-                    `;
+                    cont.innerHTML += `<div class="col-md-4"><div class="glass-card text-center"><h6>${date}</h6><button class="btn btn-sm btn-outline-danger" onclick="deletePaper('${date}')">Delete</button></div></div>`;
                 });
             }
         }
 
-        window.deletePaper = async (date) => {
-            if(confirm("මෙම Paper එක මකා දැමීමට ඔබට විශ්වාසද?")) {
-                await remove(ref(db, `daily_packs/${date}`));
-                await remove(ref(db, `results/${date}`));
-                loadPaperList();
-            }
-        };
+        window.deletePaper = async date => { if(confirm("Sure?")) { await remove(ref(db, `daily_packs/${date}`)); loadPaperList(); } };
 
         function syncStudents() {
             onValue(ref(db, 'students'), snap => {
@@ -308,8 +279,7 @@
                     const students = snap.val();
                     document.getElementById('stat-total-students').innerText = Object.keys(students).length;
                     Object.keys(students).forEach(id => {
-                        const s = students[id];
-                        table.innerHTML += `<tr><td>${id}</td><td>${s.name}</td><td>${s.password}</td><td><button class="btn btn-sm text-danger" onclick="deleteStudent('${id}')"><i class="fas fa-trash"></i></button></td></tr>`;
+                        table.innerHTML += `<tr><td>${id}</td><td>${students[id].name}</td><td>${students[id].password}</td><td><button class="btn btn-sm text-danger" onclick="deleteStudent('${id}')">Delete</button></td></tr>`;
                     });
                 }
             });
@@ -333,8 +303,7 @@
                     const results = snap.val();
                     document.getElementById('stat-today-attempts').innerText = Object.keys(results).length;
                     Object.keys(results).forEach(sid => {
-                        const r = results[sid];
-                        table.innerHTML += `<tr><td>${sid}</td><td>${r.name}</td><td>${r.score}/30</td><td>Just now</td></tr>`;
+                        table.innerHTML += `<tr><td>${sid}</td><td>${results[sid].name}</td><td>${results[sid].score}/30</td><td>Active</td></tr>`;
                     });
                 }
             });
@@ -344,69 +313,10 @@
             const today = new Date().toISOString().split('T')[0];
             const resultsSnap = await get(ref(db, `results/${today}`));
             const packSnap = await get(ref(db, `daily_packs/${today}`));
-            
-            if(!resultsSnap.exists() || !packSnap.exists()) {
-                document.getElementById('fail-analysis-list').innerHTML = "<p class='text-white-50'>අද දින දත්ත තවමත් ලැබී නැත.</p>";
-                return;
-            }
-
-            const results = resultsSnap.val();
-            const pack = packSnap.val();
-            const studentsArr = Object.values(results);
-            
-            // Stats
+            if(!resultsSnap.exists() || !packSnap.exists()) return;
+            const studentsArr = Object.values(resultsSnap.val());
             const totalScore = studentsArr.reduce((acc, curr) => acc + (curr.score || 0), 0);
-            const avg = (totalScore / studentsArr.length).toFixed(1);
-            document.getElementById('stat-avg-score').innerText = avg;
-
-            // Question Fail Analysis
-            const failCounts = { q1: 0, q2: 0, q3: 0 };
-            const scoreCounts = { '30': 0, '20': 0, '10': 0, '0': 0 };
-
-            studentsArr.forEach(r => {
-                // Score dist
-                scoreCounts[r.score] = (scoreCounts[r.score] || 0) + 1;
-                
-                // Assume binary result string or logic exists in student submission
-                // Since our current DB structure saves only final score, we infer from patterns if available
-                // For now, let's visualize based on common failure patterns from pDetails
-                if(r.pattern === 'p8') { failCounts.q1++; failCounts.q2++; failCounts.q3++; }
-                if(r.pattern === 'p1') { failCounts.q2++; failCounts.q3++; }
-                if(r.pattern === 'p2') { failCounts.q1++; failCounts.q3++; }
-                if(r.pattern === 'p3') { failCounts.q1++; failCounts.q2++; }
-            });
-
-            let failHtml = "";
-            for(let i=1; i<=3; i++) {
-                const qKey = `q${i}`;
-                const count = failCounts[qKey];
-                const perc = ((count / studentsArr.length) * 100).toFixed(0);
-                failHtml += `
-                    <div class="mb-4">
-                        <div class="d-flex justify-content-between mb-1">
-                            <span class="small">${pack.questions[qKey].text}</span>
-                            <span class="text-danger fw-bold">${perc}% Failed</span>
-                        </div>
-                        <div class="progress"><div class="progress-bar bg-danger" style="width: ${perc}%"></div></div>
-                    </div>
-                `;
-            }
-            document.getElementById('fail-analysis-list').innerHTML = failHtml;
-
-            // Score Distribution
-            let distHtml = "";
-            [30, 20, 10, 0].forEach(score => {
-                const count = scoreCounts[score] || 0;
-                const perc = ((count / studentsArr.length) * 100).toFixed(0);
-                distHtml += `
-                    <div class="d-flex align-items-center gap-3 mb-2">
-                        <div style="width: 50px;" class="fw-bold">${score}/30</div>
-                        <div class="flex-grow-1"><div class="progress"><div class="progress-bar bg-info" style="width: ${perc}%"></div></div></div>
-                        <div style="width: 30px;">${count}</div>
-                    </div>
-                `;
-            });
-            document.getElementById('score-dist-list').innerHTML = distHtml;
+            document.getElementById('stat-avg-score').innerText = (totalScore / studentsArr.length).toFixed(1);
         }
     </script>
 </body>
