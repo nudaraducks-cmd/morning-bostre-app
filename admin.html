@@ -1,4 +1,3 @@
-@@ -1,206 +1,29 @@
 <!DOCTYPE html>
 <html lang="si">
 <head>
@@ -10,15 +9,11 @@
     <style>
         :root { --primary: #6f42c1; --bg: #f4f7f6; }
         body { background: var(--bg); font-family: 'Segoe UI', sans-serif; }
-        
-        /* Dashboard Cards */
-        .stat-card { background: white; border-radius: 15px; padding: 20px; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.05); transition: 0.3s; cursor: pointer; border-left: 5px solid #ccc; }
+        .stat-card { background: white; border-radius: 15px; padding: 20px; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.05); transition: 0.3s; border-left: 5px solid #ccc; }
         .stat-card.active { border-left-color: #28a745; }
         .stat-card:hover { transform: translateY(-5px); }
-        
         .header-bar { background: var(--primary); color: white; padding: 20px; border-radius: 0 0 30px 30px; margin-bottom: 30px; }
         .admin-box { background: white; border-radius: 20px; padding: 25px; display: none; }
-        
         .date-badge { background: #e9ecef; padding: 5px 12px; border-radius: 8px; font-weight: bold; font-size: 0.8rem; }
         .btn-round { border-radius: 50px; padding: 10px 25px; font-weight: bold; }
     </style>
@@ -26,17 +21,19 @@
 <body>
 
 <div class="header-bar text-center">
-    <h3 class="fw-bold">Control Center</h3>
-    <p class="mb-0">Madawa Wijesingha Chemistry</p>
+    <h3 class="fw-bold text-uppercase">Control Center</h3>
+    <p class="mb-0">Madawa Wijesingha Chemistry Booster</p>
 </div>
 
 <div class="container">
-    
     <div id="dashboard-view">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h5 class="fw-bold">Scheduled Papers</h5>
+        <div class="d-flex justify-content-between align-items-center mb-4 p-3 bg-white rounded-4 shadow-sm">
+            <div>
+                <h5 class="fw-bold mb-0">Daily Booster Manager</h5>
+                <small class="text-muted">Manage your daily chemistry papers</small>
+            </div>
             <button class="btn btn-primary btn-round" onclick="showCreateMode()">
-                <i class="fas fa-plus me-2"></i>Update Today Question
+                <i class="fas fa-plus-circle me-2"></i>Update Today Question
             </button>
         </div>
 
@@ -44,24 +41,14 @@
             <div class="col-12 text-center py-5">
                 <div class="spinner-border text-primary"></div>
             </div>
-<div id="dashboard-view" class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4 p-3 bg-white rounded-4 shadow-sm">
-        <div>
-            <h5 class="fw-bold mb-0">Daily Booster Manager</h5>
-            <small class="text-muted">Manage your daily chemistry papers</small>
         </div>
-        <button class="btn btn-primary px-4 fw-bold rounded-pill" onclick="openEditor()">
-            <i class="fas fa-plus-circle me-2"></i>Update Today Question
-        </button>
     </div>
 
-    <div id="editor-view" class="admin-box shadow-sm mb-5">
+    <div id="editor-view" class="admin-box shadow-lg mb-5">
         <div class="d-flex justify-content-between mb-4">
-            <h5 class="fw-bold text-primary" id="editor-title">Create Daily Pack</h5>
+            <h4 class="fw-bold text-primary">Create Today's Booster</h4>
             <button class="btn-close" onclick="hideEditor()"></button>
-    <div id="paper-list" class="row g-3">
         </div>
-</div>
 
         <div class="row mb-4">
             <div class="col-md-4">
@@ -73,25 +60,16 @@
                 <input type="number" id="timer_sec" class="form-control" value="60">
             </div>
             <div class="col-md-4">
-                <label class="small fw-bold">Music URL</label>
-                <input type="text" id="music_url" class="form-control" placeholder="SoundCloud link">
-<div id="editor-view" class="container mt-4" style="display:none;">
-    <div class="card border-0 shadow-lg rounded-4">
-        <div class="card-header bg-primary text-white p-4 rounded-top-4">
-            <div class="d-flex justify-content-between">
-                <h4 class="fw-bold mb-0">Create Today's Booster</h4>
-                <button class="btn-close btn-close-white" onclick="closeEditor()"></button>
+                <label class="small fw-bold">Music URL (Optional)</label>
+                <input type="text" id="music_url" class="form-control" placeholder="URL">
             </div>
         </div>
 
         <div id="q-inputs"></div>
 
         <div class="mt-4 d-flex gap-2">
-            <button class="btn btn-success btn-round w-100" onclick="savePack()">PUBLISH PAPER</button>
-            <button class="btn btn-light btn-round w-100" onclick="hideEditor()">CANCEL</button>
-        <div class="card-body p-4">
-            <div id="q-inputs"></div> 
-            <button class="btn btn-success w-100 py-3 fw-bold rounded-pill mt-3" onclick="savePack()">PUBLISH NOW</button>
+            <button class="btn btn-success btn-round w-100 py-3" onclick="savePack()">PUBLISH PAPER</button>
+            <button class="btn btn-light btn-round w-100 py-3" onclick="hideEditor()">CANCEL</button>
         </div>
     </div>
 </div>
@@ -104,18 +82,14 @@
         apiKey: "AIzaSyDMjYdugjdCiJG9uc9Ju_7n0qkljAiC9FE",
         authDomain: "morning-boost-48c64.firebaseapp.com",
         databaseURL: "https://morning-boost-48c64-default-rtdb.firebaseio.com",
-        projectId: "morning-boost-48c64",
-        storageBucket: "morning-boost-48c64.firebasestorage.app",
-        messagingSenderId: "140528602458",
-        appId: "1:140528602458:web:34e14db5a5d93d1db13763"
+        projectId: "morning-boost-48c64"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
-
     const todayStr = new Date().toISOString().split('T')[0];
 
-    // Initialize Questions UI
+    // Q inputs generator
     const qContainer = document.getElementById('q-inputs');
     for(let i=1; i<=3; i++) {
         qContainer.innerHTML += `
@@ -141,11 +115,8 @@
         if(snap.exists()) {
             const data = snap.val();
             const sortedDates = Object.keys(data).sort().reverse();
-
             sortedDates.forEach(date => {
                 const isToday = date === todayStr;
-                const isPast = date < todayStr;
-                
                 container.innerHTML += `
                 <div class="col-md-6 col-lg-4">
                     <div class="stat-card ${isToday ? 'active' : ''}">
@@ -153,10 +124,9 @@
                             <span class="date-badge">${date}</span>
                             ${isToday ? '<span class="badge bg-success">LIVE</span>' : ''}
                         </div>
-                        <h6 class="fw-bold mb-3">Booster Paper #1</h6>
+                        <h6 class="fw-bold mb-3">Booster Paper</h6>
                         <div class="d-flex gap-2">
-                            ${isToday ? `<button class="btn btn-sm btn-danger w-100" onclick="deletePaper('${date}')">Delete to Change</button>` : 
-                            (isPast ? `<button class="btn btn-sm btn-secondary w-100" disabled>Locked (Past)</button>` : '')}
+                            <button class="btn btn-sm btn-danger w-100" onclick="deletePaper('${date}')">Delete to Change</button>
                         </div>
                     </div>
                 </div>`;
@@ -188,9 +158,9 @@
             timer_sec: document.getElementById('timer_sec').value,
             music_url: document.getElementById('music_url').value,
             questions: {},
-            patterns: { // Default result patterns
-                p1:{msg:"Good!",url:"#"}, p2:{msg:"Good!",url:"#"}, p3:{msg:"Good!",url:"#"}, p4:{msg:"Good!",url:"#"},
-                p5:{msg:"Good!",url:"#"}, p6:{msg:"Good!",url:"#"}, p7:{msg:"Good!",url:"#"}, p8:{msg:"Good!",url:"#"}
+            patterns: { 
+                p1:{msg:"Try Again!",url:"#"}, p2:{msg:"Good!",url:"#"}, p3:{msg:"Well Done!",url:"#"}, p4:{msg:"Nice!",url:"#"},
+                p5:{msg:"Great!",url:"#"}, p6:{msg:"Excellant!",url:"#"}, p7:{msg:"Brilliant!",url:"#"}, p8:{msg:"Keep it up!",url:"#"}
             }
         };
 
@@ -214,9 +184,18 @@
     };
 
     window.deletePaper = async function(date) {
-        if(confirm(`ඔබට විශ්වාසද ${date} පේපර් එක මකා දැමීමට අවශ්‍ය බව?`)) {
-            await remove(ref(db, `daily_packs/${date}`));
-            location.reload();
+        if(confirm(`ඔබට විශ්වාසද ${date} පේපර් එක සහ ළමුන්ගේ ලකුණු (Results) මකා දැමීමට අවශ්‍ය බව?`)) {
+            try {
+                // 1. Pack එක මකනවා
+                await remove(ref(db, `daily_packs/${date}`));
+                // 2. Results එකත් මකනවා (එතකොට තමයි ළමයට ආයේ කරන්න පුළුවන් වෙන්නේ)
+                await remove(ref(db, `results/${date}`));
+                
+                alert("දත්ත සාර්ථකව මැකුවා!");
+                location.reload();
+            } catch(e) {
+                alert("Error: " + e.message);
+            }
         }
     };
 
