@@ -1,12 +1,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Morning Booster | Madawa Wijesingha</title>
     <title>Admin Dashboard | Madawa Wijesingha</title>
+    <title>Morning Booster | Madawa Wijesingha</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <style>
+        :root { --primary: #6f42c1; --bg: #f8f9fa; }
+        body { background: var(--bg); font-family: 'Segoe UI', sans-serif; }
+        .header-bar { background: var(--primary); color: white; padding: 30px; border-radius: 0 0 30px 30px; margin-bottom: 20px; }
+        .q-card { background: white; border-radius: 15px; padding: 15px; margin-bottom: 15px; border: 1px solid #ddd; }
+        #editor-page { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 1000; overflow-y: auto; padding: 20px; }
         :root { --bg: #0b0f1a; --accent: #00d2ff; --glass: rgba(255, 255, 255, 0.05); }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; min-height: 100vh; display: flex; flex-direction: column; }
         .teacher-header { display: flex; align-items: center; justify-content: center; gap: 20px; padding: 40px 20px; background: linear-gradient(180deg, rgba(0,210,255,0.15), transparent); border-radius: 0 0 40px 40px; margin-bottom: 25px; }
@@ -20,32 +25,10 @@
         .option-btn.selected { background: var(--accent); font-weight: bold; color: #000; }
         .badge-master { background: linear-gradient(45deg, #ffd700, #ffa500); color: #000; padding: 10px 20px; border-radius: 50px; font-weight: 800; display: inline-block; margin-top: 15px; animation: pop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         @keyframes pop { 0% { transform: scale(0); } 100% { transform: scale(1); } }
-        :root { --primary: #6f42c1; --bg: #f8f9fa; }
-        body { background: var(--bg); font-family: 'Segoe UI', sans-serif; }
-        .header-bar { background: var(--primary); color: white; padding: 30px; border-radius: 0 0 30px 30px; margin-bottom: 20px; }
-        .q-card { background: white; border-radius: 15px; padding: 15px; margin-bottom: 15px; border: 1px solid #ddd; }
-        #editor-page { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 1000; overflow-y: auto; padding: 20px; }
     </style>
 </head>
 <body>
 
-    <div class="content-wrapper">
-        <audio id="snd-correct" src="https://cdn.pixabay.com/audio/2021/08/04/audio_bbd134918e.mp3"></audio>
-        <audio id="snd-wrong" src="https://cdn.pixabay.com/audio/2022/03/10/audio_c030d35967.mp3"></audio>
-
-        <div class="teacher-header text-center">
-            <img src="ChatGPT Image Dec 28, 2025, 08_23_10 AM.png" class="teacher-img">
-            <div><h4 class="fw-bold mb-0">MADAWA WIJESINGHA</h4><div class="small text-accent">CHEMISTRY BOOSTER</div></div>
-        </div>
-
-        <div id="login-screen" class="container" style="max-width: 400px;">
-            <div class="glass-card text-center">
-                <h5 class="fw-bold mb-4">Student Login</h5>
-                <input type="text" id="log_id" class="form-control mb-3 bg-dark text-white border-0 py-3 rounded-pill text-center" placeholder="ID Number">
-                <input type="password" id="log_pass" class="form-control mb-4 bg-dark text-white border-0 py-3 rounded-pill text-center" placeholder="Password">
-                <button class="btn btn-primary w-100 py-3 rounded-pill fw-bold" onclick="handleLogin()">LOGIN</button>
-            </div>
-        </div>
 <div id="dashboard-view">
     <div class="header-bar text-center">
         <h2 class="fw-bold">Booster පරිපාලක පුවරුව</h2>
@@ -56,7 +39,32 @@
         <h6 class="fw-bold text-muted mb-3">පෙර ප්‍රශ්න පත්‍ර (History)</h6>
     </div>
 </div>
+    <div class="content-wrapper">
+        <audio id="snd-correct" src="https://cdn.pixabay.com/audio/2021/08/04/audio_bbd134918e.mp3"></audio>
+        <audio id="snd-wrong" src="https://cdn.pixabay.com/audio/2022/03/10/audio_c030d35967.mp3"></audio>
 
+        <div class="teacher-header text-center">
+            <img src="ChatGPT Image Dec 28, 2025, 08_23_10 AM.png" class="teacher-img">
+            <div><h4 class="fw-bold mb-0">MADAWA WIJESINGHA</h4><div class="small text-accent">CHEMISTRY BOOSTER</div></div>
+        </div>
+
+<div id="editor-page">
+    <div class="container" style="max-width: 1000px;">
+        <div class="d-flex justify-content-between mb-4">
+            <h3 class="fw-bold text-primary">නව ප්‍රශ්න පත්‍රය</h3>
+            <button class="btn-close" onclick="closeEditor()"></button>
+        <div id="login-screen" class="container" style="max-width: 400px;">
+            <div class="glass-card text-center">
+                <h5 class="fw-bold mb-4">Student Login</h5>
+                <input type="text" id="log_id" class="form-control mb-3 bg-dark text-white border-0 py-3 rounded-pill text-center" placeholder="ID Number">
+                <input type="password" id="log_pass" class="form-control mb-4 bg-dark text-white border-0 py-3 rounded-pill text-center" placeholder="Password">
+                <button class="btn btn-primary w-100 py-3 rounded-pill fw-bold" onclick="handleLogin()">LOGIN</button>
+            </div>
+        </div>
+
+        <div class="card p-3 mb-4 border-0 shadow-sm bg-light">
+            <label class="fw-bold small mb-2">SoundCloud Music URL (අද දින පසුබිම් සංගීතය)</label>
+            <input type="text" id="music_url" class="form-control" placeholder="https://soundcloud.com/...">
         <div id="dashboard" class="container" style="display:none; max-width: 600px;">
             <div class="glass-card">
                 <h5 class="fw-bold mb-1" id="greeting-text">...</h5>
@@ -71,13 +79,11 @@
                 </div>
             </div>
             <div class="glass-card"><canvas id="progressChart" height="180"></canvas></div>
-<div id="editor-page">
-    <div class="container" style="max-width: 1000px;">
-        <div class="d-flex justify-content-between mb-4">
-            <h3 class="fw-bold text-primary">නව ප්‍රශ්න පත්‍රය</h3>
-            <button class="btn-close" onclick="closeEditor()"></button>
         </div>
 
+        <div class="row">
+            <div class="col-md-6" id="q-container"></div>
+            <div class="col-md-6" id="p-container"></div>
         <div id="game-view">
             <div class="container py-3">
                 <div class="timer-circle" id="timer">60</div>
@@ -88,11 +94,9 @@
                 </div>
                 <button id="next-btn" class="btn btn-primary w-100 py-3 rounded-pill mt-4 fw-bold" onclick="nextQuestion()">NEXT QUESTION</button>
             </div>
-        <div class="card p-3 mb-4 border-0 shadow-sm bg-light">
-            <label class="fw-bold small mb-2">SoundCloud Music URL (අද දින පසුබිම් සංගීතය)</label>
-            <input type="text" id="music_url" class="form-control" placeholder="https://soundcloud.com/...">
         </div>
 
+        <button class="btn btn-success btn-lg w-100 mt-4 py-3 fw-bold mb-5 shadow" onclick="saveData()">ප්‍රශ්න පත්‍රය පල කරන්න (PUBLISH)</button>
         <div id="result-screen" class="container py-5 text-center" style="display:none;">
             <div class="glass-card py-5">
                 <div id="badge-container"></div>
@@ -102,9 +106,6 @@
                 <button class="btn btn-outline-info rounded-pill w-100 fw-bold mb-3" onclick="showReview()">Review Answers</button>
                 <button class="btn btn-link text-white-50 text-decoration-none" onclick="location.reload()">Back to Dashboard</button>
             </div>
-        <div class="row">
-            <div class="col-md-6" id="q-container"></div>
-            <div class="col-md-6" id="p-container"></div>
         </div>
 
         <div id="review-view">
@@ -114,8 +115,24 @@
                 <button class="btn btn-primary w-100 py-3 rounded-pill mt-4" onclick="location.reload()">Close</button>
             </div>
         </div>
-        <button class="btn btn-success btn-lg w-100 mt-4 py-3 fw-bold mb-5 shadow" onclick="saveData()">ප්‍රශ්න පත්‍රය පල කරන්න (PUBLISH)</button>
     </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getDatabase, ref, get, set, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+    const firebaseConfig = { apiKey: "AIzaSyDMjYdugjdCiJG9uc9Ju_7n0qkljAiC9FE", authDomain: "morning-boost-48c64.firebaseapp.com", databaseURL: "https://morning-boost-48c64-default-rtdb.firebaseio.com", projectId: "morning-boost-48c64", storageBucket: "morning-boost-48c64.firebasestorage.app", messagingSenderId: "140528602458", appId: "1:140528602458:web:34e14db5a5d93d1db13763" };
+    const app = initializeApp(firebaseConfig); const db = getDatabase(app);
+    const todayStr = new Date().toISOString().split('T')[0];
+
+    // Smart Enter Logic
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && e.target.tagName !== 'BUTTON') {
+            e.preventDefault();
+            const inputs = Array.from(document.querySelectorAll('input, textarea, select'));
+            const idx = inputs.indexOf(e.target);
+            if (idx > -1 && idx < inputs.length - 1) inputs[idx + 1].focus();
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script type="module">
@@ -153,24 +170,15 @@
             document.getElementById('user-name').innerText = session.user.name;
             checkCompletion();
             syncUI();
-</div>
-
-<script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getDatabase, ref, get, set, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-
-    const firebaseConfig = { apiKey: "AIzaSyDMjYdugjdCiJG9uc9Ju_7n0qkljAiC9FE", authDomain: "morning-boost-48c64.firebaseapp.com", databaseURL: "https://morning-boost-48c64-default-rtdb.firebaseio.com", projectId: "morning-boost-48c64", storageBucket: "morning-boost-48c64.firebasestorage.app", messagingSenderId: "140528602458", appId: "1:140528602458:web:34e14db5a5d93d1db13763" };
-    const app = initializeApp(firebaseConfig); const db = getDatabase(app);
-    const todayStr = new Date().toISOString().split('T')[0];
-
-    // Smart Enter Logic
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' && e.target.tagName !== 'BUTTON') {
-            e.preventDefault();
-            const inputs = Array.from(document.querySelectorAll('input, textarea, select'));
-            const idx = inputs.indexOf(e.target);
-            if (idx > -1 && idx < inputs.length - 1) inputs[idx + 1].focus();
         }
+    });
+
+    window.openEditor = async () => {
+        // අද දිනට දැනටමත් පේපර් එකක් තියෙනවාද කියා පරීක්ෂා කිරීම
+        const snap = await get(ref(db, `daily_packs/${todayStr}`));
+        if(snap.exists()) {
+            alert("අද දිනට දැනටමත් ප්‍රශ්න පත්‍රයක් පල කර ඇත! අලුත් එකක් දැමීමට පෙර පරණ එක ඉවත් කරන්න.");
+            return;
 
         // --- නව මනෝවිද්‍යාත්මක ආරක්ෂාව (Once a day) ---
         function checkCompletion() {
@@ -180,21 +188,7 @@
                 document.getElementById('start-btn').innerText = "BOOSTER COMPLETED";
                 document.getElementById('completion-status').classList.remove('d-none');
             }
-    });
-
-    window.openEditor = async () => {
-        // අද දිනට දැනටමත් පේපර් එකක් තියෙනවාද කියා පරීක්ෂා කිරීම
-        const snap = await get(ref(db, `daily_packs/${todayStr}`));
-        if(snap.exists()) {
-            alert("අද දිනට දැනටමත් ප්‍රශ්න පත්‍රයක් පල කර ඇත! අලුත් එකක් දැමීමට පෙර පරණ එක ඉවත් කරන්න.");
-            return;
         }
-
-        function syncUI() {
-            const hr = new Date().getHours();
-            document.getElementById('greeting-text').innerText = hr < 12 ? "Good Morning! ☀️" : "Good Day! ☕";
-            onValue(ref(db, `results/${todayStr}`), (s) => document.getElementById('global-count').innerText = s.exists() ? Object.keys(s.val()).length : 0);
-            loadChart();
         document.getElementById('editor-page').style.display = 'block';
         setupForm();
     };
@@ -203,25 +197,13 @@
         const qc = document.getElementById('q-container'); qc.innerHTML = "<h5>Questions</h5>";
         for(let i=1; i<=3; i++){
             qc.innerHTML += `<div class="q-card"><h6>ප්‍රශ්නය ${i}</h6><textarea id="q${i}_t" class="form-control mb-2" placeholder="ප්‍රශ්නය"></textarea><input id="q${i}_i" class="form-control mb-2" placeholder="Image URL (ඇත්නම්)"><div class="row g-1">${[1,2,3,4,5].map(o=>`<div class="col-6"><input id="q${i}_o${o}" class="form-control form-control-sm mb-1" placeholder="Option ${o}"></div>`).join('')}</div><select id="q${i}_c" class="form-select mt-2"><option value="1">Answer 1</option><option value="2">Answer 2</option><option value="3">Answer 3</option><option value="4">Answer 4</option><option value="5">Answer 5</option></select></div>`;
+
+        function syncUI() {
+            const hr = new Date().getHours();
+            document.getElementById('greeting-text').innerText = hr < 12 ? "Good Morning! ☀️" : "Good Day! ☕";
+            onValue(ref(db, `results/${todayStr}`), (s) => document.getElementById('global-count').innerText = s.exists() ? Object.keys(s.val()).length : 0);
+            loadChart();
         }
-
-        window.initBooster = async () => {
-            const snap = await get(ref(db, `daily_packs/${todayStr}`));
-            if(!snap.exists()) return alert("No booster today!");
-            currentPack = snap.val(); qKeys = Object.keys(currentPack.questions);
-            document.getElementById('dashboard').style.display = 'none';
-            document.getElementById('game-view').style.display = 'block';
-            loadQuestion();
-        };
-
-        function loadQuestion() {
-            if(currentQIndex >= qKeys.length) return finishGame();
-            selectedIdx = null; const q = currentPack.questions[qKeys[currentQIndex]];
-            document.getElementById('q-text').innerText = q.text;
-            document.getElementById('q-img-box').innerHTML = q.img ? `<img src="${q.img}" class="img-fluid rounded-4 mb-3" style="max-height:200px">` : "";
-            const box = document.getElementById('options-box'); box.innerHTML = "";
-            q.options.forEach((opt, i) => { if(opt) box.innerHTML += `<button class="option-btn" onclick="sel(${i+1}, ${q.correct})">${opt}</button>`; });
-            startTimer(60);
         const pc = document.getElementById('p-container'); pc.innerHTML = "<h5>Patterns</h5>";
         const ps = ["p7 (RRR)", "p4 (RRW)", "p5 (RWR)", "p1 (RWW)", "p6 (WRR)", "p2 (WRW)", "p3 (WWR)", "p8 (WWW)"];
         ps.forEach((p) => {
@@ -240,11 +222,32 @@
                 options: [1,2,3,4,5].map(o=>document.getElementById(`q${i}_o${o}`).value), 
                 correct: document.getElementById(`q${i}_c`).value 
             };
+
+        window.initBooster = async () => {
+            const snap = await get(ref(db, `daily_packs/${todayStr}`));
+            if(!snap.exists()) return alert("No booster today!");
+            currentPack = snap.val(); qKeys = Object.keys(currentPack.questions);
+            document.getElementById('dashboard').style.display = 'none';
+            document.getElementById('game-view').style.display = 'block';
+            loadQuestion();
+        };
+
+        function loadQuestion() {
+            if(currentQIndex >= qKeys.length) return finishGame();
+            selectedIdx = null; const q = currentPack.questions[qKeys[currentQIndex]];
+            document.getElementById('q-text').innerText = q.text;
+            document.getElementById('q-img-box').innerHTML = q.img ? `<img src="${q.img}" class="img-fluid rounded-4 mb-3" style="max-height:200px">` : "";
+            const box = document.getElementById('options-box'); box.innerHTML = "";
+            q.options.forEach((opt, i) => { if(opt) box.innerHTML += `<button class="option-btn" onclick="sel(${i+1}, ${q.correct})">${opt}</button>`; });
+            startTimer(60);
         }
         ["p1","p2","p3","p4","p5","p6","p7","p8"].forEach(id => {
             pack.patterns[id] = { msg: document.getElementById(`${id}_m`).value, url: document.getElementById(`${id}_u`).value };
         });
 
+        await set(ref(db, `daily_packs/${todayStr}`), pack);
+        alert("සාර්ථකව පල කරන ලදී!"); location.reload();
+    };
         window.sel = (i, corr) => {
             selectedIdx = i; const isCorrect = (i == corr);
             const aud = document.getElementById(isCorrect ? 'snd-correct' : 'snd-wrong');
@@ -252,29 +255,13 @@
             document.querySelectorAll('.option-btn').forEach((b, idx) => b.classList.toggle('selected', (idx+1)==i));
         };
 
+    window.closeEditor = () => document.getElementById('editor-page').style.display = 'none';
         window.nextQuestion = () => {
             if(selectedIdx === null) return alert("Select an answer!");
             userResponses.push({ selected: selectedIdx, isCorrect: (selectedIdx == currentPack.questions[qKeys[currentQIndex]].correct) });
             currentQIndex++; clearInterval(timerInterval); loadQuestion();
         };
 
-        function startTimer(s) {
-            let t = s; const el = document.getElementById('timer');
-            timerInterval = setInterval(() => { t--; el.innerText = t; if(t <= 0){ clearInterval(timerInterval); nextQuestion(); } }, 1000);
-        }
-        await set(ref(db, `daily_packs/${todayStr}`), pack);
-        alert("සාර්ථකව පල කරන ලදී!"); location.reload();
-    };
-
-        async function finishGame() {
-            // අද දින සඳහා වැඩ අවසන් බව සටහන් කිරීම
-            localStorage.setItem(`done_${session.id}`, todayStr);
-    window.closeEditor = () => document.getElementById('editor-page').style.display = 'none';
-
-            document.getElementById('game-view').style.display = 'none';
-            document.getElementById('result-screen').style.display = 'block';
-            const r = userResponses; const a1 = r[0].isCorrect, a2 = r[1].isCorrect, a3 = r[2].isCorrect;
-            let p = (a1 && !a2 && !a3) ? "p1" : (!a1 && a2 && !a3) ? "p2" : (!a1 && !a2 && a3) ? "p3" : (a1 && a2 && !a3) ? "p4" : (a1 && !a2 && a3) ? "p5" : (!a1 && a2 && a3) ? "p6" : (a1 && a2 && a3) ? "p7" : "p8";
     async function loadDashboard() {
         const snap = await get(ref(db, 'daily_packs'));
         const list = document.getElementById('paper-list');
@@ -283,7 +270,25 @@
         if(snap.exists()){
             const data = snap.val();
             status.innerText = data[todayStr] ? "අද දින ප්‍රශ්න පත්‍රය සක්‍රීයයි ✅" : "අද දින සඳහා තවම ප්‍රශ්න පත්‍රයක් ඇතුළත් කර නැත ⚠️";
+        function startTimer(s) {
+            let t = s; const el = document.getElementById('timer');
+            timerInterval = setInterval(() => { t--; el.innerText = t; if(t <= 0){ clearInterval(timerInterval); nextQuestion(); } }, 1000);
+        }
 
+        async function finishGame() {
+            // අද දින සඳහා වැඩ අවසන් බව සටහන් කිරීම
+            localStorage.setItem(`done_${session.id}`, todayStr);
+
+            document.getElementById('game-view').style.display = 'none';
+            document.getElementById('result-screen').style.display = 'block';
+            const r = userResponses; const a1 = r[0].isCorrect, a2 = r[1].isCorrect, a3 = r[2].isCorrect;
+            let p = (a1 && !a2 && !a3) ? "p1" : (!a1 && a2 && !a3) ? "p2" : (!a1 && !a2 && a3) ? "p3" : (a1 && a2 && !a3) ? "p4" : (a1 && !a2 && a3) ? "p5" : (!a1 && a2 && a3) ? "p6" : (a1 && a2 && a3) ? "p7" : "p8";
+
+            Object.keys(data).reverse().forEach(date => {
+                list.innerHTML += `<div class="card p-3 mb-2 d-flex flex-row justify-content-between align-items-center border-0 shadow-sm">
+                    <span class="fw-bold"><i class="far fa-calendar-alt me-2"></i>${date}</span>
+                    <button class="btn btn-danger btn-sm rounded-pill" onclick="deletePaper('${date}')">Delete</button>
+                </div>`;
             if(a1 && a2 && a3) {
                 confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
                 document.getElementById('badge-container').innerHTML = `<div class="badge-master"><i class="fas fa-crown me-2"></i> MASTER OF CHEMISTRY</div>`;
@@ -303,12 +308,9 @@
             userResponses.forEach((res, i) => {
                 const q = currentPack.questions[qKeys[i]];
                 list.innerHTML += `<div class="glass-card mb-2 ${res.isCorrect ? 'border-success' : 'border-danger'}"><p class="small mb-1">Q${i+1}: ${q.text}</p><div class="small fw-bold ${res.isCorrect ? 'text-success' : 'text-danger'}">Correct: ${q.options[q.correct-1]}</div></div>`;
-            Object.keys(data).reverse().forEach(date => {
-                list.innerHTML += `<div class="card p-3 mb-2 d-flex flex-row justify-content-between align-items-center border-0 shadow-sm">
-                    <span class="fw-bold"><i class="far fa-calendar-alt me-2"></i>${date}</span>
-                    <button class="btn btn-danger btn-sm rounded-pill" onclick="deletePaper('${date}')">Delete</button>
-                </div>`;
             });
+        } else {
+            status.innerText = "පද්ධතියේ තවම ප්‍රශ්න පත්‍ර කිසිවක් නැත.";
         };
 
         async function loadChart() {
@@ -316,14 +318,12 @@
             const dates = Object.keys(snap.val()).sort().slice(-7);
             const scores = dates.map(d => snap.val()[d][session.id]?.score || 0);
             new Chart(document.getElementById('progressChart'), { type: 'line', data: { labels: dates, datasets: [{ data: scores, borderColor: '#00d2ff', backgroundColor: 'rgba(0,210,255,0.1)', fill: true, tension: 0.4 }] }, options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, max: 35 } } } });
-        } else {
-            status.innerText = "පද්ධතියේ තවම ප්‍රශ්න පත්‍ර කිසිවක් නැත.";
         }
-    </script>
     }
     
     window.deletePaper = async (d) => { if(confirm(`${d} දින පේපර් එක ඉවත් කරන්නද?`)) { await remove(ref(db, `daily_packs/${d}`)); location.reload(); }};
     loadDashboard();
 </script>
+    </script>
 </body>
 </html>
