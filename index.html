@@ -34,7 +34,7 @@
         .review-card.correct { border-left-color: #28a745; }
         .review-card.wrong { border-left-color: #dc3545; }
 
-        /* --- 🌟 ENHANCED: SINGLE FLASHCARD VIEW --- */
+        /* --- Flashcard Styling --- */
         .flash-section { margin-top: 30px; }
         .flash-container-wrapper { 
             display: flex; 
@@ -105,7 +105,6 @@
         }
         .flash-btn:active { background: var(--accent); color: black; }
 
-        /* Footer */
         footer h6 { text-shadow: 0 0 10px rgba(0, 210, 255, 0.3); letter-spacing: 2px; }
     </style>
 </head>
@@ -120,7 +119,7 @@
             <div>
                 <h4 class="fw-bold mb-0">MADAWA WIJESINGHA</h4>
                 <div class="small text-accent">CHEMISTRY BOOSTER</div>
-                <div class="version-tag">MORNING BOOSTER v1.3</div>
+                <div class="version-tag">MORNING BOOSTER v1.4</div>
             </div>
         </div>
 
@@ -147,17 +146,14 @@
             
             <div class="glass-card"><canvas id="progressChart" height="180"></canvas></div>
 
-            <!-- 🌟 REPETITION FLASHCARDS SECTION -->
             <div class="flash-section">
-                <h6 class="text-white-50 small fw-bold mb-3 ps-2 text-uppercase"><i class="fas fa-redo text-info me-2"></i>Quick Revision (Space Repetition)</h6>
+                <h6 class="text-white-50 small fw-bold mb-3 ps-2 text-uppercase"><i class="fas fa-redo text-info me-2"></i>Space Repetition Revision</h6>
                 <div id="flash-display-area" class="flash-container-wrapper">
-                    <!-- Cards load here one by one -->
-                    <div class="text-muted small">Initializing cards...</div>
+                    <div class="text-muted small">Loading tailored cards...</div>
                 </div>
             </div>
         </div>
 
-        <!-- Quiz View -->
         <div id="game-view">
             <div class="container py-3">
                 <div class="timer-circle" id="timer">60</div>
@@ -167,7 +163,6 @@
             </div>
         </div>
 
-        <!-- Result Screen -->
         <div id="result-screen" class="container py-5 text-center" style="display:none;">
             <div class="glass-card py-5">
                 <h2 class="text-accent fw-bold mb-3">COMPLETED!</h2>
@@ -177,7 +172,6 @@
             </div>
         </div>
 
-        <!-- Review View -->
         <div id="review-view">
             <div class="container py-3">
                 <h4 class="fw-bold text-accent mb-4">Review Answers</h4>
@@ -187,7 +181,6 @@
         </div>
     </div>
 
-    <!-- Footer -->
     <footer class="text-center py-4 mt-auto">
         <div class="container">
             <p class="mb-1 text-white-50 small" style="font-size: 0.65rem;">Developed & Powered by</p>
@@ -207,7 +200,6 @@
         
         let currentPack, qKeys, currentQIndex = 0, userResponses = [], selectedIdx = null, timerInterval;
         
-        // Flashcard State
         let allFlashCards = [];
         let activeFlashIndex = 0;
 
@@ -239,41 +231,54 @@
                     if (!snapshot.exists()) {
                         startBtn.disabled = true;
                         startBtn.innerText = "WAITING FOR BOOSTER...";
-                        if(statusMsg) { statusMsg.innerText = "Admin is updating data."; statusMsg.classList.remove('d-none'); }
-                        localStorage.removeItem(`done_${session.id}`);
+                        if(statusMsg) statusMsg.innerText = "Admin is updating data.";
                     } else {
                         currentPack = snapshot.val();
                         qKeys = Object.keys(currentPack.questions);
                         if (hasDoneInDB) {
                             startBtn.disabled = true;
                             startBtn.innerText = "DONE FOR TODAY ✅";
-                            if(statusMsg) { statusMsg.innerText = "You have completed this session."; statusMsg.classList.remove('d-none'); }
                         } else {
                             startBtn.disabled = false;
                             startBtn.innerText = "START TODAY BOOSTER";
-                            if(statusMsg) statusMsg.classList.add('d-none');
-                            localStorage.removeItem(`done_${session.id}`);
                         }
                     }
                 });
             });
         }
 
-        // --- SPACE REPETITION FLASH CARD LOGIC ---
+        // --- SPACE REPETITION LOGIC (0, 3, 5, 7, 14) ---
         async function fetchFlashData() {
             const snap = await get(ref(db, 'daily_packs'));
             if(snap.exists()) {
                 const data = snap.val();
-                const keys = Object.keys(data).sort().reverse().slice(0, 5);
+                const allDates = Object.keys(data).sort().reverse();
+                
+                // Load local progress
+                const flashStats = JSON.parse(localStorage.getItem(`flash_stats_${session.id}`) || '{}');
+                const now = new Date();
+
                 allFlashCards = [];
-                keys.forEach(date => {
-                    const qs = data[date].questions;
-                    Object.values(qs).forEach(q => {
-                        allFlashCards.push({
-                            q: q.text,
-                            a: q.options[q.correct - 1]
+                allDates.forEach(date => {
+                    const packDate = new Date(date);
+                    const diffDays = Math.floor((now - packDate) / (1000 * 60 * 60 * 24));
+                    
+                    // Show if: New (0), or exactly 3, 5, 7, 14 days old
+                    const intervals = [0, 3, 5, 7, 14];
+                    if (intervals.includes(diffDays)) {
+                        const qs = data[date].questions;
+                        Object.keys(qs).forEach(qId => {
+                            const cardId = `${date}_${qId}`;
+                            // Only show if not seen TODAY
+                            if(flashStats[cardId] !== todayStr) {
+                                allFlashCards.push({
+                                    id: cardId,
+                                    q: qs[qId].text,
+                                    a: qs[qId].options[qs[qId].correct - 1]
+                                });
+                            }
                         });
-                    });
+                    }
                 });
                 renderActiveFlashCard();
             }
@@ -282,7 +287,7 @@
         function renderActiveFlashCard() {
             const cont = document.getElementById('flash-display-area');
             if(allFlashCards.length === 0) {
-                cont.innerHTML = "<small class='text-muted'>No cards available.</small>";
+                cont.innerHTML = "<div class='text-center p-4 glass-card'><i class='fas fa-check-circle text-success mb-2' style='font-size:2rem;'></i><br><small class='text-white-50'>No cards due for revision today!</small></div>";
                 return;
             }
             
@@ -298,19 +303,27 @@
                         <div class="flip-card-back">
                             <div class="f-icon">✅</div>
                             <div class="f-ans">${card.a}</div>
-                            <small class="text-white-50 mt-3">Got it!</small>
+                            <small class="text-white-50 mt-3">Memory Updated!</small>
                         </div>
                     </div>
                 </div>
                 <div class="flash-controls">
-                    <button class="flash-btn" onclick="nextFlashCard()">NEXT CARD <i class="fas fa-arrow-right ms-1"></i></button>
+                    <button class="flash-btn" onclick="nextFlashCard('${card.id}')">GOT IT & NEXT <i class="fas fa-arrow-right ms-1"></i></button>
                 </div>
-                <div class="small text-white-50">${activeFlashIndex + 1} / ${allFlashCards.length}</div>
+                <div class="small text-white-50">${activeFlashIndex + 1} / ${allFlashCards.length} Cards Today</div>
             `;
         }
 
-        window.nextFlashCard = () => {
-            activeFlashIndex = (activeFlashIndex + 1) % allFlashCards.length;
+        window.nextFlashCard = (cardId) => {
+            // Save that user saw this card today
+            const flashStats = JSON.parse(localStorage.getItem(`flash_stats_${session.id}`) || '{}');
+            flashStats[cardId] = todayStr;
+            localStorage.setItem(`flash_stats_${session.id}`, JSON.stringify(flashStats));
+
+            activeFlashIndex++;
+            if(activeFlashIndex >= allFlashCards.length) {
+                allFlashCards = []; // Reset list as they are done
+            }
             renderActiveFlashCard();
         };
 
@@ -358,7 +371,8 @@
             localStorage.setItem(`done_${session.id}`, todayStr);
             document.getElementById('game-view').style.display = 'none';
             document.getElementById('result-screen').style.display = 'block';
-            const r = userResponses; const a1 = r[0].isCorrect, a2 = r[1].isCorrect, a3 = r[2].isCorrect;
+            const r = userResponses; 
+            const a1 = r[0].isCorrect, a2 = r[1].isCorrect, a3 = r[2].isCorrect;
             const pKey = (a1?"R":"W")+(a2?"R":"W")+(a3?"R":"W");
             const patterns = {"RRR":"p7","RRW":"p4","RWR":"p5","RWW":"p1","WRR":"p6","WRW":"p2","WWR":"p3","WWW":"p8"};
             const score = userResponses.filter(res => res.isCorrect).length * 10;
