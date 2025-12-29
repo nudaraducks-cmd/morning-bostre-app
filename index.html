@@ -34,44 +34,50 @@
         .review-card.correct { border-left-color: #28a745; }
         .review-card.wrong { border-left-color: #dc3545; }
 
-        /* --- 🌟 NEW: SUPER FLASHCARDS ANIMATIONS --- */
+        /* --- 🌟 ENHANCED: SINGLE FLASHCARD VIEW --- */
         .flash-section { margin-top: 30px; }
-        .flash-scroll { display: flex; gap: 15px; overflow-x: auto; padding: 10px 5px; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; }
-        .flash-scroll::-webkit-scrollbar { display: none; }
+        .flash-container-wrapper { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center;
+            gap: 15px;
+        }
         
         .flip-card {
             background-color: transparent;
-            width: 220px; height: 150px;
-            perspective: 1000px; /* 3D Effect */
-            flex-shrink: 0;
+            width: 100%; 
+            max-width: 300px; 
+            height: 200px;
+            perspective: 1000px;
             cursor: pointer;
         }
         
         .flip-card-inner {
             position: relative; width: 100%; height: 100%;
-            text-align: center; transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-align: center; transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
             transform-style: preserve-3d;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            border-radius: 25px;
         }
         
-        .flip-card:hover .flip-card-inner, .flip-card.active .flip-card-inner {
+        .flip-card.active .flip-card-inner {
             transform: rotateY(180deg);
         }
         
         .flip-card-front, .flip-card-back {
             position: absolute; width: 100%; height: 100%;
-            -webkit-backface-visibility: hidden; /* Safari */
+            -webkit-backface-visibility: hidden;
             backface-visibility: hidden;
-            border-radius: 20px;
-            padding: 15px;
+            border-radius: 25px;
+            padding: 20px;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
         
         .flip-card-front {
-            background: rgba(255,255,255,0.08);
+            background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
             border: 1px solid rgba(255,255,255,0.1);
-            color: #ddd;
+            color: #fff;
         }
         
         .flip-card-back {
@@ -81,9 +87,23 @@
             border: 1px solid rgba(255,255,255,0.2);
         }
         
-        .f-icon { font-size: 2rem; margin-bottom: 10px; opacity: 0.8; }
-        .f-text { font-size: 0.8rem; line-height: 1.4; font-weight: 500; }
-        .f-ans { font-size: 0.9rem; font-weight: bold; }
+        .f-icon { font-size: 2.5rem; margin-bottom: 10px; }
+        .f-text { font-size: 1rem; line-height: 1.5; font-weight: 500; }
+        .f-ans { font-size: 1.1rem; font-weight: bold; }
+
+        .flash-controls { display: flex; gap: 10px; width: 100%; max-width: 300px; }
+        .flash-btn { 
+            flex: 1; 
+            padding: 10px; 
+            border-radius: 15px; 
+            border: none; 
+            background: var(--glass); 
+            color: white; 
+            font-size: 0.8rem;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+        .flash-btn:active { background: var(--accent); color: black; }
 
         /* Footer */
         footer h6 { text-shadow: 0 0 10px rgba(0, 210, 255, 0.3); letter-spacing: 2px; }
@@ -100,7 +120,7 @@
             <div>
                 <h4 class="fw-bold mb-0">MADAWA WIJESINGHA</h4>
                 <div class="small text-accent">CHEMISTRY BOOSTER</div>
-                <div class="version-tag">MORNING BOOSTER v1.2</div>
+                <div class="version-tag">MORNING BOOSTER v1.3</div>
             </div>
         </div>
 
@@ -127,11 +147,12 @@
             
             <div class="glass-card"><canvas id="progressChart" height="180"></canvas></div>
 
-            <!-- 🌟 SUPER FLASHCARDS SECTION -->
+            <!-- 🌟 REPETITION FLASHCARDS SECTION -->
             <div class="flash-section">
-                <h6 class="text-white-50 small fw-bold mb-3 ps-2 text-uppercase"><i class="fas fa-bolt text-warning me-2"></i>Smart Flashcards (Tap to Flip)</h6>
-                <div id="flash-container" class="flash-scroll">
-                    <p class="small text-muted ps-2">Loading cards...</p>
+                <h6 class="text-white-50 small fw-bold mb-3 ps-2 text-uppercase"><i class="fas fa-redo text-info me-2"></i>Quick Revision (Space Repetition)</h6>
+                <div id="flash-display-area" class="flash-container-wrapper">
+                    <!-- Cards load here one by one -->
+                    <div class="text-muted small">Initializing cards...</div>
                 </div>
             </div>
         </div>
@@ -185,6 +206,10 @@
         const todayStr = new Date().toISOString().split('T')[0];
         
         let currentPack, qKeys, currentQIndex = 0, userResponses = [], selectedIdx = null, timerInterval;
+        
+        // Flashcard State
+        let allFlashCards = [];
+        let activeFlashIndex = 0;
 
         window.handleLogin = async () => {
             const id = document.getElementById('log_id').value.trim();
@@ -202,7 +227,7 @@
             document.getElementById('user-display-name').innerText = session.user.name;
             listenForBooster();
             syncUI();
-            loadFlashCards(); // Load new feature
+            fetchFlashData();
         }
 
         function listenForBooster() {
@@ -234,40 +259,60 @@
             });
         }
 
-        // --- FLASH CARD LOGIC ---
-        async function loadFlashCards() {
-            const cont = document.getElementById('flash-container');
+        // --- SPACE REPETITION FLASH CARD LOGIC ---
+        async function fetchFlashData() {
             const snap = await get(ref(db, 'daily_packs'));
             if(snap.exists()) {
-                cont.innerHTML = "";
                 const data = snap.val();
-                // Get last 5 days packs
                 const keys = Object.keys(data).sort().reverse().slice(0, 5);
-                
+                allFlashCards = [];
                 keys.forEach(date => {
                     const qs = data[date].questions;
-                    Object.values(qs).forEach((q, idx) => {
-                        const correctTxt = q.options[q.correct - 1];
-                        cont.innerHTML += `
-                        <div class="flip-card" onclick="this.classList.toggle('active')">
-                            <div class="flip-card-inner">
-                                <div class="flip-card-front">
-                                    <div class="f-icon">❓</div>
-                                    <div class="f-text">${q.text.substring(0, 50)}...</div>
-                                    <small class="text-white-50 mt-2">Tap to Reveal</small>
-                                </div>
-                                <div class="flip-card-back">
-                                    <div class="f-icon">💡</div>
-                                    <div class="f-ans">${correctTxt}</div>
-                                </div>
-                            </div>
-                        </div>`;
+                    Object.values(qs).forEach(q => {
+                        allFlashCards.push({
+                            q: q.text,
+                            a: q.options[q.correct - 1]
+                        });
                     });
                 });
-            } else {
-                cont.innerHTML = "<small class='text-muted ps-3'>No flashcards yet.</small>";
+                renderActiveFlashCard();
             }
         }
+
+        function renderActiveFlashCard() {
+            const cont = document.getElementById('flash-display-area');
+            if(allFlashCards.length === 0) {
+                cont.innerHTML = "<small class='text-muted'>No cards available.</small>";
+                return;
+            }
+            
+            const card = allFlashCards[activeFlashIndex];
+            cont.innerHTML = `
+                <div class="flip-card" id="main-flash-card" onclick="this.classList.toggle('active')">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front">
+                            <div class="f-icon">🤔</div>
+                            <div class="f-text">${card.q}</div>
+                            <small class="text-white-50 mt-3"><i class="fas fa-hand-pointer me-1"></i> Tap to flip</small>
+                        </div>
+                        <div class="flip-card-back">
+                            <div class="f-icon">✅</div>
+                            <div class="f-ans">${card.a}</div>
+                            <small class="text-white-50 mt-3">Got it!</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="flash-controls">
+                    <button class="flash-btn" onclick="nextFlashCard()">NEXT CARD <i class="fas fa-arrow-right ms-1"></i></button>
+                </div>
+                <div class="small text-white-50">${activeFlashIndex + 1} / ${allFlashCards.length}</div>
+            `;
+        }
+
+        window.nextFlashCard = () => {
+            activeFlashIndex = (activeFlashIndex + 1) % allFlashCards.length;
+            renderActiveFlashCard();
+        };
 
         function syncUI() {
             const hr = new Date().getHours();
